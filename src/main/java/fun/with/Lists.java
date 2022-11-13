@@ -1,0 +1,191 @@
+package fun.with;
+
+import fun.with.interfaces.Associate;
+import fun.with.interfaces.CollectionLike;
+import sun.reflect.generics.reflectiveObjects.NotImplementedException;
+
+import java.util.*;
+import java.util.function.*;
+
+public class Lists<T> implements CollectionLike<T, Lists<T>>, Associate<T> {
+
+    private static <X> Lists<X> empty() {
+        return new Lists<>(new ArrayList<>());
+    }
+
+    public static <X> Lists<X> of(X... xs) {
+        return new Lists<>(Arrays.asList(xs));
+    }
+
+    public static <X> Lists<X> wrap(Collection<X> xs) {
+        return new Lists<>(new ArrayList<>(xs));
+    }
+
+    public static <X> Lists<X> wrap(Iterator<X> xs) {
+        List<X> ls = new ArrayList<>();
+        while (xs.hasNext()) ls.add(xs.next());
+        return new Lists<>(ls);
+    }
+
+
+    public static <X> Lists<X> wrap(List<X> xs) {
+        return new Lists<>(xs);
+    }
+
+    public static <X> Lists<X> wrap(X[] xs) {
+        return new Lists<>(Arrays.asList(xs));
+    }
+
+    private final List<T> ls;
+
+    private Lists(List<T> ls) {
+        this.ls = ls;
+    }
+
+    public List<T> get() {
+        return this.ls;
+    }
+
+    public T get(int index) {
+        return this.ls.get(index);
+    }
+
+    public Lists<T> take(int n) {
+        return Lists.wrap(this.ls.subList(0, n));
+    }
+
+    public Lists<T> subList(int start, int stop) {
+        return Lists.wrap(this.ls.subList(start, stop));
+    }
+
+    public Lists<T> reverse() {
+        List<T> ls = new ArrayList<>(this.ls.size());
+        if (this.isEmpty())
+            return Lists.empty();
+        for (int i = this.ls.size() - 1; i >= 0; i--) {
+            ls.add(this.ls.get(i));
+        }
+        return Lists.wrap(ls);
+    }
+
+    @Override
+    public Lists<T> forEach(Consumer<? super T> consumer) {
+        for (T t : this.ls) consumer.accept(t);
+        return this;
+    }
+
+    @Override
+    public Lists<T> forEachIndexed(BiConsumer<Integer, ? super T> consumer) {
+        int index = 0;
+        for (T t : this.ls) {
+            consumer.accept(index, t);
+            index++;
+        }
+        return this;
+    }
+
+    public <X> Lists<X> map(Function<? super T, X> f) {
+        List<X> ls = new ArrayList<>(this.ls.size());
+        for (T t : this.ls) ls.add(f.apply(t));
+        return Lists.wrap(ls);
+    }
+
+    public <X> Lists<X> mapIndexed(BiFunction<Integer, ? super T, X> f) {
+        List<X> ls = new ArrayList<>(this.ls.size());
+        int index = 0;
+        for (T t : this.ls) {
+            ls.add(f.apply(index, t));
+            index++;
+        }
+        return Lists.wrap(ls);
+    }
+
+    @Override
+    public Lists<T> filter(Predicate<? super T> predicate) {
+        List<T> ls = new ArrayList<>();
+        for (T t : this.ls) if (predicate.test(t)) ls.add(t);
+        return Lists.wrap(ls);
+    }
+
+    @Override
+    public Lists<T> add(T t) {
+        this.ls.add(t);
+        return this;
+    }
+
+    @Override
+    public Lists<T> addAll(Collection<T> ts) {
+        this.ls.addAll(ts);
+        return this;
+    }
+
+    @Override
+    public boolean isEmpty() {
+        return this.ls.isEmpty();
+    }
+
+    @Override
+    public Iterator<T> iterator() {
+        return this.ls.iterator();
+    }
+
+    @Override
+    public int size() {
+        return this.ls.size();
+    }
+
+    @Override
+    public <K, V> Maps<K, V> associate(Function<T, Pair<K, V>> association) {
+        Map<K, V> m = new HashMap<>();
+        for (T t : this.ls) {
+            Pair<K, V> p = association.apply(t);
+            m.put(p.k(), p.v());
+        }
+        return Maps.wrap(m);
+    }
+
+    @Override
+    public <K> Maps<K, T> associateBy(Function<T, K> keySelector) {
+        Map<K, T> m = new HashMap<>();
+        for (T t : this.ls) m.put(keySelector.apply(t), t);
+        return Maps.wrap(m);
+    }
+
+    @Override
+    public <V> Maps<T, V> associateWith(Function<T, V> valueSelector) {
+        Map<T, V> m = new HashMap<>();
+        for (T t : this.ls) m.put(t, valueSelector.apply(t));
+        return Maps.wrap(m);
+    }
+
+    @Override
+    public <K> Maps<K, Lists<T>> groupBy(Function<T, K> keySelector) {
+        Map<K, Lists<T>> m = new HashMap<>();
+        for (T t : this.ls) {
+            K k = keySelector.apply(t);
+            m.computeIfAbsent(k, k1 -> Lists.empty());
+            m.get(k).add(t);
+        }
+        return Maps.wrap(m);
+    }
+
+    @Override
+    public <K, V> Maps<K, Lists<V>> groupBy(Function<T, K> keySelector, Function<T, V> valueSelector) {
+        Map<K, Lists<V>> m = new HashMap<>();
+        for (T t : this.ls) {
+            K k = keySelector.apply(t);
+            V v = valueSelector.apply(t);
+            m.computeIfAbsent(k, k1 -> Lists.empty());
+            m.get(k).add(v);
+        }
+        return Maps.wrap(m);
+    }
+
+    public <X> Lists<T> sortedBy(Function<T, X> propertySelector, Comparator<X> comparator) {
+        throw new NotImplementedException();
+    }
+
+    public <X> Lists<T> sortedBy(Function<T, X> propertySelector) {
+        throw new NotImplementedException();
+    }
+}

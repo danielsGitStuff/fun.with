@@ -9,12 +9,10 @@ import java.util.function.*;
 
 public class Lists<T> implements CollectionLike<T, Lists<T>>, Associate<T> {
 
-    private static <X> Lists<X> empty() {
-        return new Lists<>(new ArrayList<>());
-    }
+    private final List<T> ls;
 
-    public static <X> Lists<X> of(X... xs) {
-        return new Lists<>(Arrays.asList(xs));
+    private Lists(List<T> ls) {
+        this.ls = ls;
     }
 
     public static <X> Lists<X> wrap(Collection<X> xs) {
@@ -27,19 +25,33 @@ public class Lists<T> implements CollectionLike<T, Lists<T>>, Associate<T> {
         return new Lists<>(ls);
     }
 
-
-    public static <X> Lists<X> wrap(List<X> xs) {
-        return new Lists<>(xs);
-    }
-
     public static <X> Lists<X> wrap(X[] xs) {
         return new Lists<>(Arrays.asList(xs));
     }
 
-    private final List<T> ls;
+    public String join(final String separator) {
+        StringBuilder b = new StringBuilder();
+        forEachIndexed((i, t) -> {
+            b.append(t);
+            if (i < this.size() - 1) b.append(separator);
+        });
+        return b.toString();
+    }
 
-    private Lists(List<T> ls) {
-        this.ls = ls;
+    public <R> Lists<R> flatMap(Function<T, Lists<R>> f) {
+        Lists<R> ls = Lists.empty();
+        for (T t : this.ls) {
+            ls.addAll(f.apply(t));
+        }
+        return ls;
+    }
+
+    public static <X> Lists<X> of(X... xs) {
+        return new Lists<>(Arrays.asList(xs));
+    }
+
+    private static <X> Lists<X> empty() {
+        return new Lists<>(new ArrayList<>());
     }
 
     public List<T> get() {
@@ -54,14 +66,17 @@ public class Lists<T> implements CollectionLike<T, Lists<T>>, Associate<T> {
         return Lists.wrap(this.ls.subList(0, n));
     }
 
+    public static <X> Lists<X> wrap(List<X> xs) {
+        return new Lists<>(xs);
+    }
+
     public Lists<T> subList(int start, int stop) {
         return Lists.wrap(this.ls.subList(start, stop));
     }
 
     public Lists<T> reverse() {
         List<T> ls = new ArrayList<>(this.ls.size());
-        if (this.isEmpty())
-            return Lists.empty();
+        if (this.isEmpty()) return Lists.empty();
         for (int i = this.ls.size() - 1; i >= 0; i--) {
             ls.add(this.ls.get(i));
         }
@@ -82,22 +97,6 @@ public class Lists<T> implements CollectionLike<T, Lists<T>>, Associate<T> {
             index++;
         }
         return this;
-    }
-
-    public <X> Lists<X> map(Function<? super T, X> f) {
-        List<X> ls = new ArrayList<>(this.ls.size());
-        for (T t : this.ls) ls.add(f.apply(t));
-        return Lists.wrap(ls);
-    }
-
-    public <X> Lists<X> mapIndexed(BiFunction<Integer, ? super T, X> f) {
-        List<X> ls = new ArrayList<>(this.ls.size());
-        int index = 0;
-        for (T t : this.ls) {
-            ls.add(f.apply(index, t));
-            index++;
-        }
-        return Lists.wrap(ls);
     }
 
     @Override
@@ -125,6 +124,11 @@ public class Lists<T> implements CollectionLike<T, Lists<T>>, Associate<T> {
         return this;
     }
 
+    public Lists<T> unique() {
+        List<T> ls = new ArrayList<>(new LinkedHashSet<>(this.ls));
+        return Lists.wrap(ls);
+    }
+
     @Override
     public boolean isEmpty() {
         return this.ls.isEmpty();
@@ -138,6 +142,22 @@ public class Lists<T> implements CollectionLike<T, Lists<T>>, Associate<T> {
     @Override
     public int size() {
         return this.ls.size();
+    }
+
+    public <X> Lists<X> map(Function<? super T, X> f) {
+        List<X> ls = new ArrayList<>(this.ls.size());
+        for (T t : this.ls) ls.add(f.apply(t));
+        return Lists.wrap(ls);
+    }
+
+    public <X> Lists<X> mapIndexed(BiFunction<Integer, ? super T, X> f) {
+        List<X> ls = new ArrayList<>(this.ls.size());
+        int index = 0;
+        for (T t : this.ls) {
+            ls.add(f.apply(index, t));
+            index++;
+        }
+        return Lists.wrap(ls);
     }
 
     @Override
@@ -201,25 +221,18 @@ public class Lists<T> implements CollectionLike<T, Lists<T>>, Associate<T> {
         return new Permutations<T>(this);
     }
 
-    public String join(final String separator) {
-        StringBuilder b = new StringBuilder();
-        forEachIndexed((i, t) -> {
-                    b.append(t);
-                    if (i < this.size() - 1) b.append(separator);
-                }
-        );
-        return b.toString();
+    @Override
+    public int hashCode() {
+        return ls.hashCode();
     }
 
-    public <R> Lists<R> flatMap(Function<T, Lists<R>> f) {
-        Lists<R> ls = Lists.empty();
-        for (T t : this.ls) {
-            ls.addAll(f.apply(t));
-        }
-        return ls;
-    }
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
 
-    public static void main(String[] args) {
-        System.out.println(Lists.of("bla", "foo", "bar").flatMap(s -> Strings.wrap(s).toLists()).join(","));
+        Lists<?> lists = (Lists<?>) o;
+
+        return ls.equals(lists.ls);
     }
 }

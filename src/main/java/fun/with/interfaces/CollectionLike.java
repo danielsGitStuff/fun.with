@@ -22,6 +22,8 @@ public interface CollectionLike<T, Re> {
 
     Re addAll(Lists<T> ts);
 
+    Re unique();
+
     boolean isEmpty();
 
     Iterator<T> iterator();

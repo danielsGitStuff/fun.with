@@ -2,7 +2,7 @@ package fun.with;
 
 public class Checks {
     public interface ICheck {
-        public boolean test() throws Exception;
+        boolean test() throws Exception;
     }
 
     /**

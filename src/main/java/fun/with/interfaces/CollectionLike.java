@@ -1,5 +1,7 @@
 package fun.with.interfaces;
 
+import fun.with.Lists;
+
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.function.BiConsumer;
@@ -17,6 +19,8 @@ public interface CollectionLike<T, Re> {
     Re add(T t);
 
     Re addAll(Collection<T> ts);
+
+    Re addAll(Lists<T> ts);
 
     boolean isEmpty();
 

@@ -1,4 +1,4 @@
-package fun.with.util;
+package fun.with;
 
 
 import java.util.HashMap;
@@ -7,7 +7,7 @@ import java.util.Map;
 /**
  * Created by xor on 30.10.2015.
  */
-public enum NumberTransformer {
+public enum NumberCasting {
     // IDEs might tell you to remove boxing (like: "return Long.valueOf(n.longValue())").
     // don't do that: it happened that the return values had wrong types (eg: Long instead of int)
     P_DOUBLE(double.class) {
@@ -89,24 +89,24 @@ public enum NumberTransformer {
         }
     };
 
-    private final static Map<Class<? extends Number>, NumberTransformer> TRANSFORMER_MAP = new HashMap<>();
+    private final static Map<Class<? extends Number>, NumberCasting> TRANSFORMER_MAP = new HashMap<>();
 
     static {
-        for (NumberTransformer tranformer : values()) {
+        for (NumberCasting tranformer : values()) {
             TRANSFORMER_MAP.put(tranformer.type, tranformer);
         }
     }
 
     private final Class<? extends Number> type;
 
-    NumberTransformer(Class<? extends Number> type) {
+    NumberCasting(Class<? extends Number> type) {
         this.type = type;
     }
 
     public abstract Number cast(Number n);
 
-    public static NumberTransformer forType(Class<? extends Number> type) {
-        final NumberTransformer t = TRANSFORMER_MAP.get(type);
+    public static NumberCasting forType(Class<? extends Number> type) {
+        final NumberCasting t = TRANSFORMER_MAP.get(type);
         return t == null ? NULL : t;
     }
 
@@ -119,7 +119,7 @@ public enum NumberTransformer {
      * @param <N>
      */
     public static <In extends Number,N extends Number> In castLike(In in, N number ){
-        In casted = (In) NumberTransformer.forType(in.getClass()).cast(number);
+        In casted = (In) NumberCasting.forType(in.getClass()).cast(number);
         return casted;
     }
 }

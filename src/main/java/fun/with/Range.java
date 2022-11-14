@@ -1,6 +1,5 @@
 package fun.with;
 
-import fun.with.util.NumberTransformer;
 import fun.with.util.RangeIterator;
 
 import java.util.Iterator;
@@ -20,13 +19,13 @@ public class Range<T extends Number> implements Iterable<T> {
 
     public static <X extends Number> Range<X> of(X start, X stop) {
         int intStep = (stop.doubleValue() > start.doubleValue()) ? 1 : -1;
-        X step = NumberTransformer.castLike(start, intStep);
+        X step = NumberCasting.castLike(start, intStep);
         return new Range<>(start, stop, step);
     }
 
     public static <X extends Number> Range<X> of(X stop) {
-        X start = NumberTransformer.castLike(stop, 0);
-        X step = NumberTransformer.castLike(stop, 1);
+        X start = NumberCasting.castLike(stop, 0);
+        X step = NumberCasting.castLike(stop, 1);
         return new Range<>(start, stop, step);
     }
 

@@ -1,13 +1,12 @@
 package fun.with.util;
 
+import fun.with.NumberCasting;
 import fun.with.Range;
 
 import java.util.Iterator;
 
 public class RangeIterator<T extends Number> implements Iterator<T> {
 
-    private final Range<T> range;
-    private final double doubleStart;
     private final double doubleStop;
     private final double doubleStep;
     private final boolean positive;
@@ -15,11 +14,9 @@ public class RangeIterator<T extends Number> implements Iterator<T> {
     private double doubleCurrent;
 
     public RangeIterator(Range<T> range) {
-        this.range = range;
-        this.doubleStart = range.getStart().doubleValue();
         this.doubleStop = range.getStop().doubleValue();
         this.doubleStep = range.getStep().doubleValue();
-        this.doubleCurrent = this.doubleStart;
+        this.doubleCurrent = range.getStart().doubleValue();
         this.positive = range.isPositive();
         this.start = range.getStart();
     }
@@ -35,6 +32,6 @@ public class RangeIterator<T extends Number> implements Iterator<T> {
     public T next() {
         double current = this.doubleCurrent;
         this.doubleCurrent += this.doubleStep;
-        return NumberTransformer.castLike(this.start, current);
+        return NumberCasting.castLike(this.start, current);
     }
 }

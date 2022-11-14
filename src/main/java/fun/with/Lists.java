@@ -120,6 +120,12 @@ public class Lists<T> implements CollectionLike<T, Lists<T>>, Associate<T> {
     }
 
     @Override
+    public Lists<T> addAll(Lists<T> ts) {
+        this.ls.addAll(ts.ls);
+        return this;
+    }
+
+    @Override
     public boolean isEmpty() {
         return this.ls.isEmpty();
     }
@@ -182,10 +188,38 @@ public class Lists<T> implements CollectionLike<T, Lists<T>>, Associate<T> {
     }
 
     public <X> Lists<T> sortedBy(Function<T, X> propertySelector, Comparator<X> comparator) {
+        //todo not implemented
         throw new NotImplementedException();
     }
 
     public <X> Lists<T> sortedBy(Function<T, X> propertySelector) {
+        //todo not implemented
         throw new NotImplementedException();
+    }
+
+    public Permutations<T> permute() {
+        return new Permutations<T>(this);
+    }
+
+    public String join(final String separator) {
+        StringBuilder b = new StringBuilder();
+        forEachIndexed((i, t) -> {
+                    b.append(t);
+                    if (i < this.size() - 1) b.append(separator);
+                }
+        );
+        return b.toString();
+    }
+
+    public <R> Lists<R> flatMap(Function<T, Lists<R>> f) {
+        Lists<R> ls = Lists.empty();
+        for (T t : this.ls) {
+            ls.addAll(f.apply(t));
+        }
+        return ls;
+    }
+
+    public static void main(String[] args) {
+        System.out.println(Lists.of("bla", "foo", "bar").flatMap(s -> Strings.wrap(s).toLists()).join(","));
     }
 }

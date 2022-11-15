@@ -29,6 +29,10 @@ public class Lists<T> implements CollectionLike<T, Lists<T>>, Associate<T> {
         return new Lists<>(Arrays.asList(xs));
     }
 
+    public static <X> Lists<X> of(X... xs) {
+        return new Lists<>(Arrays.asList(xs));
+    }
+
     public String join(final String separator) {
         StringBuilder b = new StringBuilder();
         forEachIndexed((i, t) -> {
@@ -44,10 +48,6 @@ public class Lists<T> implements CollectionLike<T, Lists<T>>, Associate<T> {
             ls.addAll(f.apply(t));
         }
         return ls;
-    }
-
-    public static <X> Lists<X> of(X... xs) {
-        return new Lists<>(Arrays.asList(xs));
     }
 
     private static <X> Lists<X> empty() {
@@ -124,6 +124,7 @@ public class Lists<T> implements CollectionLike<T, Lists<T>>, Associate<T> {
         return this;
     }
 
+    @Override
     public Lists<T> unique() {
         List<T> ls = new ArrayList<>(new LinkedHashSet<>(this.ls));
         return Lists.wrap(ls);

@@ -1,7 +1,6 @@
 package fun.with.lists.classes;
 
 import fun.with.Lists;
-import fun.with.lists.classes.House;
 import org.junit.jupiter.api.BeforeEach;
 
 public class BaseTest {

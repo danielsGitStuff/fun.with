@@ -32,8 +32,8 @@ public class Maps<K, V> {
         return Lists.wrap(this.m.values());
     }
 
-    public Lists<K> keys() {
-        return Lists.wrap(this.m.keySet());
+    public Sets<K> keySet() {
+        return Sets.wrap(this.m.keySet());
     }
 
     public <KK, VV> Maps<KK, VV> map(BiFunction<K, V, Pair<KK, VV>> f) {
@@ -54,7 +54,7 @@ public class Maps<K, V> {
         return this;
     }
 
-    public Maps<K, V> remove(K  k) {
+    public Maps<K, V> remove(K k) {
         this.m.remove(k);
         return this;
     }
@@ -87,5 +87,18 @@ public class Maps<K, V> {
     public Maps<K, V> merge(K k, V v, BiFunction<? super V, ? super V, ? extends V> biFunction) {
         this.m.merge(k, v, biFunction);
         return this;
+    }
+
+    public boolean containsKey(K k) {
+        return m.containsKey(k);
+    }
+
+    public Maps<K, V> clear() {
+        m.clear();
+        return this;
+    }
+
+    public V getOrDefault(K k, V v) {
+        return m.getOrDefault(k, v);
     }
 }

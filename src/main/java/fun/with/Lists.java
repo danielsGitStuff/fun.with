@@ -2,7 +2,6 @@ package fun.with;
 
 import fun.with.interfaces.Associate;
 import fun.with.interfaces.CollectionLike;
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import java.util.*;
 import java.util.function.*;
@@ -21,7 +20,9 @@ public class Lists<T> implements CollectionLike<T, Lists<T>>, Associate<T> {
 
     public static <X> Lists<X> wrap(Iterator<X> xs) {
         List<X> ls = new ArrayList<>();
-        while (xs.hasNext()) ls.add(xs.next());
+        while (xs.hasNext()) {
+            ls.add(xs.next());
+        }
         return new Lists<>(ls);
     }
 
@@ -37,7 +38,9 @@ public class Lists<T> implements CollectionLike<T, Lists<T>>, Associate<T> {
         StringBuilder b = new StringBuilder();
         forEachIndexed((i, t) -> {
             b.append(t);
-            if (i < this.size() - 1) b.append(separator);
+            if (i < this.size() - 1) {
+                b.append(separator);
+            }
         });
         return b.toString();
     }
@@ -50,7 +53,7 @@ public class Lists<T> implements CollectionLike<T, Lists<T>>, Associate<T> {
         return ls;
     }
 
-    private static <X> Lists<X> empty() {
+    public static <X> Lists<X> empty() {
         return new Lists<>(new ArrayList<>());
     }
 
@@ -76,7 +79,9 @@ public class Lists<T> implements CollectionLike<T, Lists<T>>, Associate<T> {
 
     public Lists<T> reverse() {
         List<T> ls = new ArrayList<>(this.ls.size());
-        if (this.isEmpty()) return Lists.empty();
+        if (this.isEmpty()) {
+            return Lists.empty();
+        }
         for (int i = this.ls.size() - 1; i >= 0; i--) {
             ls.add(this.ls.get(i));
         }
@@ -85,7 +90,9 @@ public class Lists<T> implements CollectionLike<T, Lists<T>>, Associate<T> {
 
     @Override
     public Lists<T> forEach(Consumer<? super T> consumer) {
-        for (T t : this.ls) consumer.accept(t);
+        for (T t : this.ls) {
+            consumer.accept(t);
+        }
         return this;
     }
 
@@ -102,7 +109,11 @@ public class Lists<T> implements CollectionLike<T, Lists<T>>, Associate<T> {
     @Override
     public Lists<T> filter(Predicate<? super T> predicate) {
         List<T> ls = new ArrayList<>();
-        for (T t : this.ls) if (predicate.test(t)) ls.add(t);
+        for (T t : this.ls) {
+            if (predicate.test(t)) {
+                ls.add(t);
+            }
+        }
         return Lists.wrap(ls);
     }
 
@@ -121,6 +132,12 @@ public class Lists<T> implements CollectionLike<T, Lists<T>>, Associate<T> {
     @Override
     public Lists<T> addAll(Lists<T> ts) {
         this.ls.addAll(ts.ls);
+        return this;
+    }
+
+    @Override
+    public Lists<T> addTo(CollectionLike<T, Lists<T>> other) {
+        other.addAll(this);
         return this;
     }
 
@@ -145,9 +162,16 @@ public class Lists<T> implements CollectionLike<T, Lists<T>>, Associate<T> {
         return this.ls.size();
     }
 
+    @Override
+    public boolean contains(T t) {
+        return this.ls.contains(t);
+    }
+
     public <X> Lists<X> map(Function<? super T, X> f) {
         List<X> ls = new ArrayList<>(this.ls.size());
-        for (T t : this.ls) ls.add(f.apply(t));
+        for (T t : this.ls) {
+            ls.add(f.apply(t));
+        }
         return Lists.wrap(ls);
     }
 
@@ -174,14 +198,27 @@ public class Lists<T> implements CollectionLike<T, Lists<T>>, Associate<T> {
     @Override
     public <K> Maps<K, T> associateBy(Function<T, K> keySelector) {
         Map<K, T> m = new HashMap<>();
-        for (T t : this.ls) m.put(keySelector.apply(t), t);
+        for (T t : this.ls) {
+            m.put(keySelector.apply(t), t);
+        }
         return Maps.wrap(m);
     }
 
     @Override
     public <V> Maps<T, V> associateWith(Function<T, V> valueSelector) {
         Map<T, V> m = new HashMap<>();
-        for (T t : this.ls) m.put(t, valueSelector.apply(t));
+        for (T t : this.ls) {
+            m.put(t, valueSelector.apply(t));
+        }
+        return Maps.wrap(m);
+    }
+
+    @Override
+    public <V> Maps<T, V> associateWith(V v) {
+        Map<T, V> m = new HashMap<>();
+        for (T t : this.ls) {
+            m.put(t, v);
+        }
         return Maps.wrap(m);
     }
 
@@ -208,14 +245,19 @@ public class Lists<T> implements CollectionLike<T, Lists<T>>, Associate<T> {
         return Maps.wrap(m);
     }
 
-    public <X> Lists<T> sortedBy(Function<T, X> propertySelector, Comparator<X> comparator) {
-        //todo not implemented
-        throw new NotImplementedException();
+    public <X extends Comparable<X>> Lists<T> sortBy(Function<T, X> propertySelector) {
+        Comparator<T> comparator = (a, b) -> {
+            X aa = propertySelector.apply(a);
+            X bb = propertySelector.apply(b);
+            return aa.compareTo(bb);
+        };
+        return this.sort(comparator);
     }
 
-    public <X> Lists<T> sortedBy(Function<T, X> propertySelector) {
-        //todo not implemented
-        throw new NotImplementedException();
+    public Lists<T> sort(Comparator<T> comparator) {
+        List<T> ls = new ArrayList<>(this.ls);
+        ls.sort(comparator);
+        return Lists.wrap(ls);
     }
 
     public Permutations<T> permute() {
@@ -229,11 +271,35 @@ public class Lists<T> implements CollectionLike<T, Lists<T>>, Associate<T> {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
 
         Lists<?> lists = (Lists<?>) o;
 
         return ls.equals(lists.ls);
+    }
+
+    public T first() {
+        return this.ls.get(0);
+    }
+
+    public T last() {
+        return this.ls.get(this.size() - 1);
+    }
+
+    public Lists<T> repeat(int n) {
+        List<T> ls = new ArrayList<>(this.size() * n);
+        for (int i = 0; i < n; i++) {
+            ls.addAll(this.ls);
+        }
+        return Lists.wrap(ls);
+    }
+
+    public Sets<T> sets() {
+        return Sets.wrap(this.ls);
     }
 }

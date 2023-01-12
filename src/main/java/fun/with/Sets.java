@@ -25,6 +25,10 @@ public class Sets<T> implements CollectionLike<T, Sets<T>>, Associate<T> {
         return new Sets<>(new HashSet<>(xs));
     }
 
+    public Set<T> get() {
+        return this.set;
+    }
+
 
     @Override
     public <K, V> Maps<K, V> associate(Function<T, Pair<K, V>> association) {

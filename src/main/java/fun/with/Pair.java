@@ -27,6 +27,10 @@ public class Pair<K, V> {
         return this.v;
     }
 
+    public Pair<V, K> flip() {
+        return Pair.of(this.v, this.k);
+    }
+
     public static <K, V> Pair<K, V> of(K k, V v) {
         return new Pair<>(k, v);
     }

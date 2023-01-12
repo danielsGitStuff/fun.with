@@ -13,13 +13,16 @@ public class Range<T extends Number> implements Iterable<T> {
     private final boolean positive;
     private final Class<? extends Number> type;
 
-    public static <X extends Number> Range<X> of(X start, X stop, X step) {
-        return new Range<>(start, stop, step);
+    private Range(T start, T stop, T step) {
+        this.start = start;
+        this.stop = stop;
+        this.step = step;
+        this.positive = this.stop.doubleValue() > this.start.doubleValue();
+        this.type = start.getClass();
+        Checks.check("step must go the same direction as start -> end", () -> this.step.doubleValue() > 0 == (this.stop.doubleValue() > this.start.doubleValue()));
     }
 
-    public static <X extends Number> Range<X> of(X start, X stop) {
-        int intStep = (stop.doubleValue() > start.doubleValue()) ? 1 : -1;
-        X step = NumberCasting.castLike(start, intStep);
+    public static <X extends Number> Range<X> of(X start, X stop, X step) {
         return new Range<>(start, stop, step);
     }
 
@@ -29,13 +32,15 @@ public class Range<T extends Number> implements Iterable<T> {
         return new Range<>(start, stop, step);
     }
 
-    private Range(T start, T stop, T step) {
-        this.start = start;
-        this.stop = stop;
-        this.step = step;
-        this.positive = this.stop.doubleValue() > this.start.doubleValue();
-        this.type = start.getClass();
-        Checks.check("step must go the same direction as start -> end", () -> this.step.doubleValue() > 0 == (this.stop.doubleValue() > this.start.doubleValue()));
+    public static void main(String[] args) {
+        Range.of(2, 3).forEach(x -> System.out.println("Range.main " + x));
+        Range.of(1.0,3.6,.5).forEach(System.out::println);
+    }
+
+    public static <X extends Number> Range<X> of(X start, X stop) {
+        int intStep = (stop.doubleValue() > start.doubleValue()) ? 1 : -1;
+        X step = NumberCasting.castLike(start, intStep);
+        return new Range<>(start, stop, step);
     }
 
     public T getStart() {
@@ -54,20 +59,16 @@ public class Range<T extends Number> implements Iterable<T> {
         return positive;
     }
 
+    public Lists<T> ls() {
+        return Lists.wrap(this.iterator());
+    }
+
     @Override
     public Iterator<T> iterator() {
         return new RangeIterator<>(this);
     }
 
-    public Lists<T> ls() {
-        return Lists.wrap(this.iterator());
-    }
-
     public Class<? extends Number> getType() {
         return type;
-    }
-
-    public static void main(String[] args) {
-        Range.of(2, 3).forEach(x -> System.out.println("Range.main " + x));
     }
 }

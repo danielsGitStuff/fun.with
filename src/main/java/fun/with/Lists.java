@@ -18,6 +18,40 @@ public class Lists<T> implements CollectionLike<T, Lists<T>>, Associate<T> {
         return new Lists<>(new ArrayList<>(xs));
     }
 
+    public static <X, Y> Lists<Pair<X, Y>> zip(Lists<X> xs, Lists<Y> ys) {
+        return xs.mapIndexed((index, x) -> Pair.of(x, ys.get(index)));
+    }
+
+    public <X> Lists<X> mapIndexed(BiFunction<Integer, ? super T, X> f) {
+        List<X> ls = new ArrayList<>(this.ls.size());
+        int index = 0;
+        for (T t : this.ls) {
+            ls.add(f.apply(index, t));
+            index++;
+        }
+        return Lists.wrap(ls);
+    }
+
+    public T get(int index) {
+        return this.ls.get(index);
+    }
+
+    public static <X> Lists<X> wrap(List<X> xs) {
+        return new Lists<>(xs);
+    }
+
+    public static <X, Y> Lists<Pair<X, Y>> zip(List<X> xs, Lists<Y> ys) {
+        return Lists.wrap(xs).mapIndexed((index, x) -> Pair.of(x, ys.get(index)));
+    }
+
+    public static <X, Y> Lists<Pair<X, Y>> zip(Lists<X> xs, List<Y> ys) {
+        return xs.mapIndexed((index, x) -> Pair.of(x, ys.get(index)));
+    }
+
+    public static <X, Y> Lists<Pair<X, Y>> zip(List<X> xs, List<Y> ys) {
+        return Lists.wrap(xs).mapIndexed((index, x) -> Pair.of(x, ys.get(index)));
+    }
+
     public static <X> Lists<X> wrap(Iterator<X> xs) {
         List<X> ls = new ArrayList<>();
         while (xs.hasNext()) {
@@ -45,6 +79,26 @@ public class Lists<T> implements CollectionLike<T, Lists<T>>, Associate<T> {
         return b.toString();
     }
 
+    public <X> Lists<Pair<T, X>> zip(Lists<X> other) {
+        if (other == null)
+            throw new RuntimeException("other list was null");
+        return this.zip(other.ls);
+    }
+
+    public <X> Lists<Pair<T, X>> zip(List<X> other) {
+        if (other == null)
+            throw new RuntimeException("other list was null");
+        if (this.ls.size() != other.size())
+            throw new RuntimeException("other list had size " + other.size() + " but was expected to be " + this.size());
+        Lists<Pair<T, X>> ls = Lists.wrap(new ArrayList<>(this.size()));
+        int index = 0;
+        for (T t : this.ls) {
+            ls.ls.add(new Pair<>(t, other.get(index)));
+            index++;
+        }
+        return ls;
+    }
+
     public <R> Lists<R> flatMap(Function<T, Lists<R>> f) {
         Lists<R> ls = Lists.empty();
         for (T t : this.ls) {
@@ -61,16 +115,8 @@ public class Lists<T> implements CollectionLike<T, Lists<T>>, Associate<T> {
         return this.ls;
     }
 
-    public T get(int index) {
-        return this.ls.get(index);
-    }
-
     public Lists<T> take(int n) {
         return Lists.wrap(this.ls.subList(0, n));
-    }
-
-    public static <X> Lists<X> wrap(List<X> xs) {
-        return new Lists<>(xs);
     }
 
     public Lists<T> subList(int start, int stop) {
@@ -175,16 +221,6 @@ public class Lists<T> implements CollectionLike<T, Lists<T>>, Associate<T> {
         return Lists.wrap(ls);
     }
 
-    public <X> Lists<X> mapIndexed(BiFunction<Integer, ? super T, X> f) {
-        List<X> ls = new ArrayList<>(this.ls.size());
-        int index = 0;
-        for (T t : this.ls) {
-            ls.add(f.apply(index, t));
-            index++;
-        }
-        return Lists.wrap(ls);
-    }
-
     @Override
     public <K, V> Maps<K, V> associate(Function<T, Pair<K, V>> association) {
         Map<K, V> m = new HashMap<>();
@@ -281,6 +317,21 @@ public class Lists<T> implements CollectionLike<T, Lists<T>>, Associate<T> {
         Lists<?> lists = (Lists<?>) o;
 
         return ls.equals(lists.ls);
+    }
+
+    @Override
+    public String toString() {
+        if (isEmpty()) return "[]";
+        StringBuilder b = new StringBuilder("[");
+        final int lastIndex = this.ls.size() - 1;
+        int index = 0;
+        for (T t : this.ls) {
+            b.append(t);
+            if (index != lastIndex)
+                b.append(",");
+            index++;
+        }
+        return b.append("]").toString();
     }
 
     public T first() {

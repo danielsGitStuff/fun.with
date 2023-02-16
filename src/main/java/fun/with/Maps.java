@@ -101,4 +101,8 @@ public class Maps<K, V> {
     public V getOrDefault(K k, V v) {
         return m.getOrDefault(k, v);
     }
+
+    public int size() {
+        return this.m.size();
+    }
 }

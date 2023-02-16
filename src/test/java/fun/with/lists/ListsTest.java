@@ -1,13 +1,14 @@
 package fun.with.lists;
 
-import fun.with.Lists;
-import fun.with.Pair;
+import fun.with.*;
 import fun.with.lists.classes.BaseTest;
 import fun.with.lists.classes.House;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -121,6 +122,16 @@ public class ListsTest extends BaseTest {
 
     @Test
     void mapIndexed() {
+        List<Integer> expectedIndices = new ArrayList<>();
+        List<House> expectedHouses = new ArrayList<>();
+        for (int i = 0; i < this.houses.size(); i++) {
+            expectedIndices.add(i);
+            expectedHouses.add(this.houses.get(i));
+        }
+        this.houses.copy().mapIndexed((i, h) -> {
+            assertEquals(h, expectedHouses.get(i));
+            return i;
+        }).forEach(i -> assertEquals(expectedIndices.get(i), i));
     }
 
     @Test
@@ -157,14 +168,24 @@ public class ListsTest extends BaseTest {
 
     @Test
     void take() {
+        Lists<Integer> numbers = Range.of(0, 6).ls().take(2);
+        assertEquals(2, numbers.size());
+        numbers.forEachIndexed(Assertions::assertEquals);
     }
 
     @Test
     void subList() {
+        Lists<Integer> numbers = Range.of(1, 6).ls();
+        Lists<Integer> subList = numbers.subList(2, 3);
+        assertEquals(1, subList.size());
+        assertEquals(3, subList.first());
     }
 
     @Test
     void filter() {
+        Lists<Integer> filtered = Lists.of(1, 2, 3, 4, 5).filter(integer -> integer != 3);
+        assertFalse(filtered.contains(3));
+        assertEquals(4, filtered.size());
     }
 
     @Test
@@ -193,38 +214,42 @@ public class ListsTest extends BaseTest {
 
     @Test
     void contains() {
+        assertFalse(houseNumbers.contains(0));
+        assertTrue(houseNumbers.contains(1));
+        assertTrue(houseNumbers.contains(2));
+        assertTrue(houseNumbers.contains(3));
+        assertFalse(houseNumbers.contains(4));
     }
 
     @Test
     void map() {
-    }
-
-    @Test
-    void associate() {
-    }
-
-    @Test
-    void associateBy() {
-    }
-
-    @Test
-    void associateWith() {
-    }
-
-    @Test
-    void testAssociateWith() {
+        Lists<Integer> numbers = Lists.of(1, 2, 3).map(i -> i - 1);
+        numbers.forEachIndexed(Assertions::assertEquals);
+        assertEquals(3, numbers.size());
     }
 
     @Test
     void groupBy() {
+        Lists<House> houses = this.houses.copy().add(new House(2, 9));
+        Maps<Integer, Lists<Integer>> windowsGroupedByDoors = houses.groupBy(h -> h.doors, house -> house.windows);
+        assertEquals(3, windowsGroupedByDoors.size());
+        assertEquals(1, windowsGroupedByDoors.get(3).size());
+        assertEquals(1, windowsGroupedByDoors.get(4).size());
     }
 
     @Test
     void testGroupBy() {
+        Lists<House> houses = this.houses.copy().add(new House(2, 9));
+        Maps<Integer, Lists<House>> groupedByDoors = houses.groupBy(h -> h.doors);
+        assertEquals(3, groupedByDoors.size());
+        assertEquals(1, groupedByDoors.get(3).size());
+        assertEquals(1, groupedByDoors.get(4).size());
     }
 
     @Test
     void sort() {
+        Lists<Integer> sorted = Lists.of(3, 2, 1, 0).sort(Integer::compare);
+        sorted.forEachIndexed(Assertions::assertEquals);
     }
 
     @Test
@@ -241,9 +266,12 @@ public class ListsTest extends BaseTest {
 
     @Test
     void repeat() {
+        assertEquals(this.houseNumbers.size() * 2, this.houseNumbers.repeat(2).size());
     }
 
     @Test
     void sets() {
+        Sets<Integer> s = Lists.of(1, 2, 3).sets();
+        Range.of(1, 3).ls().forEach(i -> assertTrue(s.contains(i)));
     }
 }

@@ -353,4 +353,8 @@ public class Lists<T> implements CollectionLike<T, Lists<T>>, Associate<T> {
     public Sets<T> sets() {
         return Sets.wrap(this.ls);
     }
+
+    public Lists<T> copy() {
+        return Lists.wrap(new ArrayList<>(this.ls));
+    }
 }

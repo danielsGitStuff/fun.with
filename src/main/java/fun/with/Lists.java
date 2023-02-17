@@ -357,6 +357,7 @@ public class Lists<T> implements CollectionLike<T, Lists<T>>, Associate<T> {
     public Lists<T> copy() {
         return Lists.wrap(new ArrayList<>(this.ls));
     }
+
     public Lists<T> drop(int n) {
         return Lists.wrap(new ArrayList<>(this.ls).subList(0, this.ls.size() - n));
     }

@@ -94,7 +94,7 @@ public class Brain {
     brain.floodWithNeurons(2000);
     final int BATCH_SIZE = 10;
     Lists<Lists<Float>> ands = Lists.of(Lists.of(1, 1).map(i -> (float) i)).repeat(BATCH_SIZE);
-    Lists<Lists<Float>> nones = Lists.of(Lists.of(1, 1).map(i -> (float) i)).repeat(BATCH_SIZE);
+    Lists<Lists<Float>> nones = Lists.of(Lists.of(0, 0).map(i -> (float) i)).repeat(BATCH_SIZE);
     Lists<Lists<Lists<Float>>> noneBatches = Lists.of(nones).repeat(5);
     noneBatches.forEach(xsBatch -> {
       xsBatch.forEach(fs->{

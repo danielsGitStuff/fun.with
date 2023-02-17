@@ -8,7 +8,8 @@ import java.util.Random;
 import java.util.Set;
 
 public class Neuron {
-  private static final float NEURON_USED_FACTOR = 1.02f;
+  public static final float NEURON_USED_FACTOR = 1.02f;
+  public static final float NEURON_BAD_AMOUNT = .5f;
   
   public static float callActivationFunction(float x) {
     if (x < -10)

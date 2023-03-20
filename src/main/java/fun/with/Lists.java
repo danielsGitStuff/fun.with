@@ -189,8 +189,11 @@ public class Lists<T> implements CollectionLike<T, Lists<T>>, Associate<T> {
 
     @Override
     public Lists<T> unique() {
-        List<T> ls = new ArrayList<>(new LinkedHashSet<>(this.ls));
-        return Lists.wrap(ls);
+        return Lists.wrap(new LinkedHashSet<>(this.ls));
+    }
+
+    public UniqueLists<T> toUniqueLists() {
+        return UniqueLists.wrap(this.ls);
     }
 
     @Override

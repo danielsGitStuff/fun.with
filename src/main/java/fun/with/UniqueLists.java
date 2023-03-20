@@ -13,6 +13,7 @@ import java.util.stream.Collectors;
 
 /**
  * Like {@link Lists} but keeps elements unique using a {@link HashMap}.
+ *
  * @param <T>
  */
 @Unstable(reason = "Not that mature yet")
@@ -50,34 +51,38 @@ public class UniqueLists<T> implements CollectionLike<T, UniqueLists<T>>, Associ
         return this.ls.get(index);
     }
 
+    public Lists<T> ls() {
+        return Lists.wrap(this.ls);
+    }
+
     @Override
     public <K, V> Maps<K, V> associate(Function<T, Pair<K, V>> association) {
-        throw new UnsupportedOperationException("Not implemented yet");
+        return Lists.wrap(this.ls).associate(association);
     }
 
     @Override
     public <K> Maps<K, T> associateBy(Function<T, K> keySelector) {
-        throw new UnsupportedOperationException("Not implemented yet");
+        return Lists.wrap(this.ls).associateBy(keySelector);
     }
 
     @Override
     public <V> Maps<T, V> associateWith(Function<T, V> valueSelector) {
-        throw new UnsupportedOperationException("Not implemented yet");
+        return Lists.wrap(this.ls).associateWith(valueSelector);
     }
 
     @Override
     public <V> Maps<T, V> associateWith(V v) {
-        throw new UnsupportedOperationException("Not implemented yet");
+        return Lists.wrap(this.ls).associateWith(v);
     }
 
     @Override
     public <K> Maps<K, Lists<T>> groupBy(Function<T, K> keySelector) {
-        throw new UnsupportedOperationException("Not implemented yet");
+        return Lists.wrap(this.ls).groupBy(keySelector);
     }
 
     @Override
     public <K, V> Maps<K, Lists<V>> groupBy(Function<T, K> keySelector, Function<T, V> valueSelector) {
-        throw new UnsupportedOperationException("Not implemented yet");
+        return Lists.wrap(this.ls).groupBy(keySelector, valueSelector);
     }
 
     @Override
@@ -129,12 +134,13 @@ public class UniqueLists<T> implements CollectionLike<T, UniqueLists<T>>, Associ
 
     @Override
     public UniqueLists<T> addTo(CollectionLike<T, UniqueLists<T>> other) {
-        throw new UnsupportedOperationException("Not implemented yet");
+        other.addAll(this.ls);
+        return this;
     }
 
     @Override
     public UniqueLists<T> unique() {
-        throw new UnsupportedOperationException("Not implemented yet");
+        return this;
     }
 
     @Override

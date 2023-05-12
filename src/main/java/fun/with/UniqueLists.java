@@ -121,6 +121,12 @@ public class UniqueLists<T> implements CollectionLike<T, UniqueLists<T>>, Associ
     }
 
     @Override
+    public UniqueLists<T> addAll(CollectionLike<T, ?> ts) {
+        this.addAll(ts.getCollection());
+        return this;
+    }
+
+    @Override
     public UniqueLists<T> addAll(Collection<T> ts) {
         ts.forEach(this::add);
         return this;
@@ -161,5 +167,10 @@ public class UniqueLists<T> implements CollectionLike<T, UniqueLists<T>>, Associ
     @Override
     public boolean contains(T t) {
         return this.instance2indexMap.containsKey(t);
+    }
+
+    @Override
+    public Collection<T> getCollection() {
+        return this.ls;
     }
 }

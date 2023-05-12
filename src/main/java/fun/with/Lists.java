@@ -115,6 +115,10 @@ public class Lists<T> implements CollectionLike<T, Lists<T>>, Associate<T> {
         return this.ls;
     }
 
+    /**
+     * @param n how many elements to return
+     * @return the first n elements
+     */
     public Lists<T> take(int n) {
         return Lists.wrap(this.ls.subList(0, n));
     }
@@ -176,6 +180,12 @@ public class Lists<T> implements CollectionLike<T, Lists<T>>, Associate<T> {
     }
 
     @Override
+    public Lists<T> addAll(CollectionLike<T, ?> ts) {
+        this.ls.addAll(ts.getCollection());
+        return this;
+    }
+
+    @Override
     public Lists<T> addAll(Lists<T> ts) {
         this.ls.addAll(ts.ls);
         return this;
@@ -214,6 +224,11 @@ public class Lists<T> implements CollectionLike<T, Lists<T>>, Associate<T> {
     @Override
     public boolean contains(T t) {
         return this.ls.contains(t);
+    }
+
+    @Override
+    public Collection<T> getCollection() {
+        return this.ls;
     }
 
     public <X> Lists<X> map(Function<? super T, X> f) {
@@ -359,5 +374,13 @@ public class Lists<T> implements CollectionLike<T, Lists<T>>, Associate<T> {
 
     public Lists<T> copy() {
         return Lists.wrap(new ArrayList<>(this.ls));
+    }
+
+    /**
+     * @param n how many elements to drop
+     * @return all but the first n elements
+     */
+    public Lists<T> drop(int n) {
+        return Lists.wrap(ls.subList(n, ls.size()));
     }
 }

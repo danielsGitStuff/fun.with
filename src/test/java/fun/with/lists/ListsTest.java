@@ -210,6 +210,7 @@ public class ListsTest extends BaseTest {
 
     @Test
     void size() {
+        assertEquals(3, houseNumbers.size());
     }
 
     @Test
@@ -219,6 +220,14 @@ public class ListsTest extends BaseTest {
         assertTrue(houseNumbers.contains(2));
         assertTrue(houseNumbers.contains(3));
         assertFalse(houseNumbers.contains(4));
+    }
+
+    @Test
+    void drop() {
+        Lists<Integer> dropped1 = houseNumbers.drop(1);
+        Lists<Integer> dropped3 = houseNumbers.drop(3);
+        assertEquals(Lists.of(2, 3), dropped1);
+        assertEquals(Lists.empty(), dropped3);
     }
 
     @Test

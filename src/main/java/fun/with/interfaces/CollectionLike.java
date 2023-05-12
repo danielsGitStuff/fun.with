@@ -48,6 +48,14 @@ public interface CollectionLike<T, Re> {
    * @param ts elements to append
    * @return this
    */
+  Re addAll(CollectionLike<T,?> ts);
+
+  /**
+   * appends to this CollectionLike
+   *
+   * @param ts elements to append
+   * @return this
+   */
   Re addAll(Collection<T> ts);
 
   /**
@@ -96,4 +104,6 @@ public interface CollectionLike<T, Re> {
    * @return true if element in CollectionLike
    */
   boolean contains(T t);
+
+  Collection<T> getCollection();
 }

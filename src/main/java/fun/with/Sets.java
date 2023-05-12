@@ -169,4 +169,44 @@ public class Sets<T> implements CollectionLike<T, Sets<T>>, Associate<T> {
     public boolean contains(T t) {
         return this.set.contains(t);
     }
+
+    public Lists<T> ls() {
+        return Lists.wrap(this.set);
+    }
+
+    public Sets<T> subtract(Sets<T> others) {
+        return this.filter(it -> !others.contains(it));
+    }
+
+    public Sets<T> union(Sets<T> others) {
+        Sets<T> result = Sets.wrap(this.set);
+        result.addAll(others);
+        return result;
+    }
+
+    @Override
+    public Sets<T> addAll(CollectionLike<T, ?> ts) {
+        this.set.addAll(ts.getCollection());
+        return this;
+    }
+
+    @Override
+    public Collection<T> getCollection() {
+        return this.set;
+    }
+
+    @Override
+    public String toString() {
+        if (isEmpty()) return "{}";
+        StringBuilder b = new StringBuilder("{");
+        final int lastIndex = this.set.size() - 1;
+        int index = 0;
+        for (T t : this.set) {
+            b.append(t);
+            if (index != lastIndex)
+                b.append(",");
+            index++;
+        }
+        return b.append("}").toString();
+    }
 }

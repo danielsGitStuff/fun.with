@@ -6,6 +6,14 @@ public class Strings {
         return new Strings(s);
     }
 
+    public static boolean hasContent(String s) {
+        return Strings.notNullOrEmpty(s);
+    }
+
+    public static boolean notNullOrEmpty(String s) {
+        return s != null && !s.isEmpty();
+    }
+
     private final String s;
 
     public Strings(String s) {

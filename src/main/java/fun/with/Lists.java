@@ -339,8 +339,8 @@ public class Lists<T> implements CollectionLike<T, Lists<T>>, Associate<T> {
 
     @Override
     public String toString() {
-        if (isEmpty()) return "[]";
-        StringBuilder b = new StringBuilder("[");
+        if (isEmpty()) return "L(0)[]";
+        StringBuilder b = new StringBuilder("l(").append(this.size()).append(")[");
         final int lastIndex = this.ls.size() - 1;
         int index = 0;
         for (T t : this.ls) {
@@ -383,4 +383,23 @@ public class Lists<T> implements CollectionLike<T, Lists<T>>, Associate<T> {
     public Lists<T> drop(int n) {
         return Lists.wrap(ls.subList(n, ls.size()));
     }
+
+    public Lists<T> intersection(CollectionLike<T, ?> other) {
+        return this.intersection(other.getCollection());
+    }
+    public Lists<T> intersection(Collection<T> other) {
+        List<T> ls = new ArrayList<>();
+        Set<T> set = new HashSet<>(other);
+        for (T t : this.ls) {
+            if (set.contains(t))
+                ls.add(t);
+        }
+        return Lists.wrap(ls);
+    }
+
+    public Lists<T> keep(T... ts) {
+        Set<T> set = new HashSet<>(Arrays.asList(ts));
+        return this.intersection(set);
+    }
+
 }

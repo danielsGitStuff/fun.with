@@ -197,8 +197,8 @@ public class Sets<T> implements CollectionLike<T, Sets<T>>, Associate<T> {
 
     @Override
     public String toString() {
-        if (isEmpty()) return "{}";
-        StringBuilder b = new StringBuilder("{");
+        if (isEmpty()) return "S(0){}";
+        StringBuilder b = new StringBuilder("S(").append(this.size()).append("){");
         final int lastIndex = this.set.size() - 1;
         int index = 0;
         for (T t : this.set) {
@@ -208,5 +208,15 @@ public class Sets<T> implements CollectionLike<T, Sets<T>>, Associate<T> {
             index++;
         }
         return b.append("}").toString();
+    }
+
+    public Sets<T> intersection(Set<T> other) {
+        Set<T> set = new HashSet<>(this.set);
+        set.retainAll(other);
+        return Sets.wrap(set);
+    }
+
+    public Sets<T> intersection(Sets<T> other) {
+        return this.intersection(other.get());
     }
 }

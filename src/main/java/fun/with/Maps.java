@@ -2,7 +2,9 @@ package fun.with;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.BiFunction;
+import java.util.function.BiPredicate;
 import java.util.function.Function;
 
 public class Maps<K, V> {
@@ -104,5 +106,75 @@ public class Maps<K, V> {
 
     public int size() {
         return this.m.size();
+    }
+
+    @Override
+    public String toString() {
+        if (this.isEmpty()) return "M(0){}";
+        StringBuilder b = new StringBuilder("M(").append(this.size()).append("){");
+        final int lastIndex = this.m.size() - 1;
+        int index = 0;
+        for (Map.Entry<K, V> e : this.m.entrySet()) {
+            b.append(e.getKey()).append("=>").append(e.getValue());
+            if (index != lastIndex)
+                b.append(",");
+            index++;
+        }
+        return b.append("}").toString();
+    }
+
+    public boolean isEmpty() {
+        return this.m.isEmpty();
+    }
+
+    public Maps<K, V> filter(BiPredicate<K, V> predicate) {
+        Map<K, V> m = new HashMap<>();
+        for (Map.Entry<K, V> e : this.m.entrySet()) {
+            if (predicate.test(e.getKey(), e.getValue()))
+                m.put(e.getKey(), e.getValue());
+        }
+        return Maps.wrap(m);
+    }
+
+    /**
+     * replaces all the content of targetMap with the current one
+     *
+     * @param targetMap
+     * @return
+     */
+    public Maps<K, V> toMap(Map<K, V> targetMap) {
+        targetMap.clear();
+        targetMap.putAll(this.m);
+        return this;
+    }
+
+    public Maps<K, V> keep(K... ks) {
+        Map<K, V> m = new HashMap<>();
+        for (K k : ks) {
+            if (this.m.containsKey(k))
+                m.put(k, this.m.get(k));
+        }
+        return Maps.wrap(m);
+    }
+
+    public Maps<K, V> intersection(Set<K> other) {
+        Map<K, V> m = new HashMap<>();
+        for (K k : other) {
+            if (this.m.containsKey(k))
+                m.put(k, this.m.get(k));
+        }
+        return Maps.wrap(m);
+    }
+
+    public Maps<K, V> intersection(Sets<K> other) {
+        return this.intersection(other.get());
+    }
+
+    public Maps<K, V> intersection(Map<K, V> other) {
+        return this.intersection(other.keySet());
+    }
+
+    public Maps<K, V> intersection(Maps<K, V> other) {
+        return this.intersection(other.keySet().get());
     }
 }

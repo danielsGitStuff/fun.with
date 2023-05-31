@@ -49,7 +49,7 @@ public class ListsTest extends BaseTest {
 
     @Test
     public void toStr() {
-        assertEquals("[1,2]", Lists.of(1, 2).toString());
+        assertEquals("l(2)[1,2]", Lists.of(1, 2).toString());
     }
 
     @Test

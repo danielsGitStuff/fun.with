@@ -14,7 +14,7 @@ public class Permutations<T> {
         this.values = values;
     }
 
-    public Lists<Lists<T>> withoutRepetition(int k) {
+    public Lists<Lists<T>> withRepetition(int k) {
         final int n = this.values.size();
         final int size = (int) java.lang.Math.pow(n, k);
         Lists<Lists<T>> result = Lists.wrap(new ArrayList<>((int) size));
@@ -36,8 +36,7 @@ public class Permutations<T> {
         return result;
     }
 
-    public static void main(String[] args) {
-        Lists<Lists<Integer>> ps = new Permutations<>(Lists.of(1, 2, 3)).withoutRepetition(2);
-        ps.forEach(ints -> System.out.println(ints.join(", ")));
+    public Lists<Lists<T>> withoutRepetition(int k) {
+        throw new RuntimeException("not implemented yet");
     }
 }

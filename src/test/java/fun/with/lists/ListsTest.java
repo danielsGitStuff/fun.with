@@ -6,9 +6,7 @@ import fun.with.lists.classes.House;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -35,7 +33,7 @@ public class ListsTest extends BaseTest {
 
     @Test
     public void permute() {
-        Lists<Lists<Integer>> ps = Lists.of(1, 2).permute().withoutRepetition(2);
+        Lists<Lists<Integer>> ps = Lists.of(1, 2).permute().withRepetition(2);
         ps.forEachIndexed((index, ls) -> {
             System.out.println(ls);
             // alternate between 1 and 2
@@ -118,6 +116,9 @@ public class ListsTest extends BaseTest {
 
     @Test
     void wrap() {
+        Lists<House> ls = Lists.wrap(this.houses.get());
+        assertEquals(this.houses.size(), ls.size());
+        assertTrue(ls.zip(this.houses).allMatch(houseHousePair -> houseHousePair.k() == houseHousePair.v()));
     }
 
     @Test
@@ -156,10 +157,15 @@ public class ListsTest extends BaseTest {
 
     @Test
     void join() {
+        String s = Lists.of(1, 2, 3).join("?");
+        assertEquals("1?2?3", s);
     }
 
     @Test
     void empty() {
+        assertFalse(Lists.of(1).isEmpty());
+        assertTrue(Lists.empty().isEmpty());
+        assertTrue(Lists.of(1).drop(1).isEmpty());
     }
 
     @Test

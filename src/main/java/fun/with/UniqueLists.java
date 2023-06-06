@@ -1,5 +1,9 @@
 package fun.with;
 
+import fun.with.actions.ActionBiConsumer;
+import fun.with.actions.ActionConsumer;
+import fun.with.actions.ActionFunction;
+import fun.with.actions.ActionPredicate;
 import fun.with.annotations.Unstable;
 import fun.with.interfaces.Associate;
 import fun.with.interfaces.CollectionLike;
@@ -56,17 +60,17 @@ public class UniqueLists<T> implements CollectionLike<T, UniqueLists<T>>, Associ
     }
 
     @Override
-    public <K, V> Maps<K, V> associate(Function<T, Pair<K, V>> association) {
+    public <K, V> Maps<K, V> associate(ActionFunction<T, Pair<K, V>> association) {
         return Lists.wrap(this.ls).associate(association);
     }
 
     @Override
-    public <K> Maps<K, T> associateBy(Function<T, K> keySelector) {
+    public <K> Maps<K, T> associateBy(ActionFunction<T, K> keySelector) {
         return Lists.wrap(this.ls).associateBy(keySelector);
     }
 
     @Override
-    public <V> Maps<T, V> associateWith(Function<T, V> valueSelector) {
+    public <V> Maps<T, V> associateWith(ActionFunction<T, V> valueSelector) {
         return Lists.wrap(this.ls).associateWith(valueSelector);
     }
 
@@ -76,23 +80,23 @@ public class UniqueLists<T> implements CollectionLike<T, UniqueLists<T>>, Associ
     }
 
     @Override
-    public <K> Maps<K, Lists<T>> groupBy(Function<T, K> keySelector) {
+    public <K> Maps<K, Lists<T>> groupBy(ActionFunction<T, K> keySelector) {
         return Lists.wrap(this.ls).groupBy(keySelector);
     }
 
     @Override
-    public <K, V> Maps<K, Lists<V>> groupBy(Function<T, K> keySelector, Function<T, V> valueSelector) {
+    public <K, V> Maps<K, Lists<V>> groupBy(ActionFunction<T, K> keySelector, ActionFunction<T, V> valueSelector) {
         return Lists.wrap(this.ls).groupBy(keySelector, valueSelector);
     }
 
     @Override
-    public UniqueLists<T> forEach(Consumer<? super T> consumer) {
+    public UniqueLists<T> forEach(ActionConsumer<? super T> consumer) {
         for (T t : this.ls) consumer.accept(t);
         return this;
     }
 
     @Override
-    public UniqueLists<T> forEachIndexed(BiConsumer<Integer, ? super T> consumer) {
+    public UniqueLists<T> forEachIndexed(ActionBiConsumer<Integer, ? super T> consumer) {
         int index = 0;
         for (T t : this.ls) {
             consumer.accept(index, t);
@@ -102,8 +106,11 @@ public class UniqueLists<T> implements CollectionLike<T, UniqueLists<T>>, Associ
     }
 
     @Override
-    public UniqueLists<T> filter(Predicate<? super T> predicate) {
-        List<T> ls = this.ls.stream().filter(predicate).collect(Collectors.toList());
+    public UniqueLists<T> filter(ActionPredicate<? super T> predicate) {
+        List<T> ls = new ArrayList<>();
+        for (T t : this.ls) {
+            if (predicate.test(t)) ls.add(t);
+        }
         return UniqueLists.wrap(ls);
     }
 
@@ -172,5 +179,23 @@ public class UniqueLists<T> implements CollectionLike<T, UniqueLists<T>>, Associ
     @Override
     public Collection<T> getCollection() {
         return this.ls;
+    }
+
+    @Override
+    public boolean allMatch(ActionPredicate<T> predicate) {
+        for (T t : this.ls) {
+            if (!predicate.test(t))
+                return false;
+        }
+        return true;
+    }
+
+    @Override
+    public boolean anyMatch(ActionPredicate<T> predicate) {
+        for (T t : this.ls) {
+            if (predicate.test(t))
+                return true;
+        }
+        return false;
     }
 }

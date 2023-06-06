@@ -1,7 +1,11 @@
 package fun.with;
 
-import fun.with.Actions.*;
+import fun.with.actions.*;
+import fun.with.annotations.Unstable;
 
+import java.io.IOException;
+
+@Unstable(reason = "might not be more readable at all :D")
 public class Attempt<T, S> {
     private ActionFunction<T, S> actionFunction;
     private ActionConsumer<T> actionConsumer;
@@ -90,17 +94,22 @@ public class Attempt<T, S> {
     private S execute() {
         try {
             if (this.actionFunction != null)
-                this.result = this.actionFunction.run((T) this.previousAttempt.result);
+                this.result = this.actionFunction.performAction((T) this.previousAttempt.result);
             else if (this.actionRunnable != null)
                 this.actionRunnable.run();
             else if (this.actionSupplier != null)
-                this.result = this.actionSupplier.run();
+                this.result = this.actionSupplier.get();
             else if (this.actionConsumer != null)
-                this.actionConsumer.run((T) this.previousAttempt.result);
+                this.actionConsumer.accept((T) this.previousAttempt.result);
         } catch (Exception e) {
             this.exception = e;
-            if (this.exceptionConsumer != null)
-                this.exceptionConsumer.run(e);
+            if (this.exceptionConsumer != null) {
+                this.exceptionConsumer.accept(e);
+            } else if (e instanceof RuntimeException) {
+                throw (RuntimeException) e;
+            } else {
+                throw new RuntimeException(e);
+            }
         }
         return this.result;
     }
@@ -114,11 +123,17 @@ public class Attempt<T, S> {
     }
 
     public static void main(String[] args) {
-        Attempt.attempt(() -> {
-                    throw new RuntimeException("blabla");
-                })
-                .onFail(Throwable::printStackTrace)
-                .after((it) -> System.out.println("success " + it))
+//        Attempt.attempt(() -> {
+//                    throw new IOException("blabla");
+//                })
+//                .onFail(Throwable::printStackTrace)
+//                .after((it) -> System.out.println("success " + it))
+//                .run();
+        Lists<Integer> xs = Attempt.attempt(() -> Lists.of("1", "2", "3", "4")
+                        .map(it -> Integer.parseInt(it)))
+                .onFail(e -> System.err.println("Mistake " + e.getMessage()))
+                .afterFunction(ls -> ls.forEach(s-> System.out.println("S="+s)))
                 .run();
+        System.out.println("Attempt.main");
     }
 }

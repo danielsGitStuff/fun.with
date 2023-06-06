@@ -1,5 +1,9 @@
 package fun.with;
 
+import fun.with.actions.ActionBiConsumer;
+import fun.with.actions.ActionConsumer;
+import fun.with.actions.ActionFunction;
+import fun.with.actions.ActionPredicate;
 import fun.with.interfaces.Associate;
 import fun.with.interfaces.CollectionLike;
 
@@ -31,7 +35,7 @@ public class Sets<T> implements CollectionLike<T, Sets<T>>, Associate<T> {
 
 
     @Override
-    public <K, V> Maps<K, V> associate(Function<T, Pair<K, V>> association) {
+    public <K, V> Maps<K, V> associate(ActionFunction<T, Pair<K, V>> association) {
         Map<K, V> m = new HashMap<>();
         for (T t : this.set) {
             Pair<K, V> pair = association.apply(t);
@@ -41,7 +45,7 @@ public class Sets<T> implements CollectionLike<T, Sets<T>>, Associate<T> {
     }
 
     @Override
-    public <K> Maps<K, T> associateBy(Function<T, K> keySelector) {
+    public <K> Maps<K, T> associateBy(ActionFunction<T, K> keySelector) {
         Map<K, T> m = new HashMap<>();
         for (T t : this.set) {
             K k = keySelector.apply(t);
@@ -51,7 +55,7 @@ public class Sets<T> implements CollectionLike<T, Sets<T>>, Associate<T> {
     }
 
     @Override
-    public <V> Maps<T, V> associateWith(Function<T, V> valueSelector) {
+    public <V> Maps<T, V> associateWith(ActionFunction<T, V> valueSelector) {
         Map<T, V> m = new HashMap<>();
         for (T t : this.set) {
             V v = valueSelector.apply(t);
@@ -70,7 +74,7 @@ public class Sets<T> implements CollectionLike<T, Sets<T>>, Associate<T> {
     }
 
     @Override
-    public <K> Maps<K, Lists<T>> groupBy(Function<T, K> keySelector) {
+    public <K> Maps<K, Lists<T>> groupBy(ActionFunction<T, K> keySelector) {
         Map<K, Lists<T>> m = new HashMap<>();
         for (T t : this.set) {
             K k = keySelector.apply(t);
@@ -81,7 +85,7 @@ public class Sets<T> implements CollectionLike<T, Sets<T>>, Associate<T> {
     }
 
     @Override
-    public <K, V> Maps<K, Lists<V>> groupBy(Function<T, K> keySelector, Function<T, V> valueSelector) {
+    public <K, V> Maps<K, Lists<V>> groupBy(ActionFunction<T, K> keySelector, ActionFunction<T, V> valueSelector) {
         Map<K, Lists<V>> m = new HashMap<>();
         for (T t : this.set) {
             K k = keySelector.apply(t);
@@ -93,7 +97,7 @@ public class Sets<T> implements CollectionLike<T, Sets<T>>, Associate<T> {
     }
 
     @Override
-    public Sets<T> forEach(Consumer<? super T> consumer) {
+    public Sets<T> forEach(ActionConsumer<? super T> consumer) {
         for (T t : this.set) {
             consumer.accept(t);
         }
@@ -101,7 +105,7 @@ public class Sets<T> implements CollectionLike<T, Sets<T>>, Associate<T> {
     }
 
     @Override
-    public Sets<T> forEachIndexed(BiConsumer<Integer, ? super T> consumer) {
+    public Sets<T> forEachIndexed(ActionBiConsumer<Integer, ? super T> consumer) {
         int index = 0;
         for (T t : this.set) {
             consumer.accept(index, t);
@@ -111,7 +115,7 @@ public class Sets<T> implements CollectionLike<T, Sets<T>>, Associate<T> {
     }
 
     @Override
-    public Sets<T> filter(Predicate<? super T> predicate) {
+    public Sets<T> filter(ActionPredicate<? super T> predicate) {
         Set<T> set = new HashSet<>();
         for (T t : this.set) {
             if (predicate.test(t)) {
@@ -196,6 +200,14 @@ public class Sets<T> implements CollectionLike<T, Sets<T>>, Associate<T> {
     }
 
     @Override
+    public boolean allMatch(ActionPredicate<T> predicate) {
+        for (T t : this.set) {
+            if (!predicate.test(t))
+                return false;
+        }
+        return true;    }
+
+    @Override
     public String toString() {
         if (isEmpty()) return "S(0){}";
         StringBuilder b = new StringBuilder("S(").append(this.size()).append("){");
@@ -219,4 +231,12 @@ public class Sets<T> implements CollectionLike<T, Sets<T>>, Associate<T> {
     public Sets<T> intersection(Sets<T> other) {
         return this.intersection(other.get());
     }
+
+    @Override
+    public boolean anyMatch(ActionPredicate<T> predicate) {
+        for (T t : this.set) {
+            if (predicate.test(t))
+                return true;
+        }
+        return false;    }
 }

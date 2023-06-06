@@ -1,5 +1,6 @@
 package fun.with;
 
+import fun.with.actions.*;
 import fun.with.interfaces.Associate;
 import fun.with.interfaces.CollectionLike;
 
@@ -139,7 +140,7 @@ public class Lists<T> implements CollectionLike<T, Lists<T>>, Associate<T> {
     }
 
     @Override
-    public Lists<T> forEach(Consumer<? super T> consumer) {
+    public Lists<T> forEach(ActionConsumer<? super T> consumer) {
         for (T t : this.ls) {
             consumer.accept(t);
         }
@@ -147,7 +148,7 @@ public class Lists<T> implements CollectionLike<T, Lists<T>>, Associate<T> {
     }
 
     @Override
-    public Lists<T> forEachIndexed(BiConsumer<Integer, ? super T> consumer) {
+    public Lists<T> forEachIndexed(ActionBiConsumer<Integer, ? super T> consumer) {
         int index = 0;
         for (T t : this.ls) {
             consumer.accept(index, t);
@@ -157,7 +158,7 @@ public class Lists<T> implements CollectionLike<T, Lists<T>>, Associate<T> {
     }
 
     @Override
-    public Lists<T> filter(Predicate<? super T> predicate) {
+    public Lists<T> filter(ActionPredicate<? super T> predicate) {
         List<T> ls = new ArrayList<>();
         for (T t : this.ls) {
             if (predicate.test(t)) {
@@ -231,6 +232,24 @@ public class Lists<T> implements CollectionLike<T, Lists<T>>, Associate<T> {
         return this.ls;
     }
 
+    @Override
+    public boolean allMatch(ActionPredicate<T> predicate) {
+        for (T t : this.ls) {
+            if (!predicate.test(t))
+                return false;
+        }
+        return true;
+    }
+
+    @Override
+    public boolean anyMatch(ActionPredicate<T> predicate) {
+        for (T t : this.ls) {
+            if (predicate.test(t))
+                return true;
+        }
+        return false;
+    }
+
     public <X> Lists<X> map(Function<? super T, X> f) {
         List<X> ls = new ArrayList<>(this.ls.size());
         for (T t : this.ls) {
@@ -240,7 +259,7 @@ public class Lists<T> implements CollectionLike<T, Lists<T>>, Associate<T> {
     }
 
     @Override
-    public <K, V> Maps<K, V> associate(Function<T, Pair<K, V>> association) {
+    public <K, V> Maps<K, V> associate(ActionFunction<T, Pair<K, V>> association) {
         Map<K, V> m = new HashMap<>();
         for (T t : this.ls) {
             Pair<K, V> p = association.apply(t);
@@ -250,7 +269,7 @@ public class Lists<T> implements CollectionLike<T, Lists<T>>, Associate<T> {
     }
 
     @Override
-    public <K> Maps<K, T> associateBy(Function<T, K> keySelector) {
+    public <K> Maps<K, T> associateBy(ActionFunction<T, K> keySelector) {
         Map<K, T> m = new HashMap<>();
         for (T t : this.ls) {
             m.put(keySelector.apply(t), t);
@@ -259,7 +278,7 @@ public class Lists<T> implements CollectionLike<T, Lists<T>>, Associate<T> {
     }
 
     @Override
-    public <V> Maps<T, V> associateWith(Function<T, V> valueSelector) {
+    public <V> Maps<T, V> associateWith(ActionFunction<T, V> valueSelector) {
         Map<T, V> m = new HashMap<>();
         for (T t : this.ls) {
             m.put(t, valueSelector.apply(t));
@@ -277,7 +296,7 @@ public class Lists<T> implements CollectionLike<T, Lists<T>>, Associate<T> {
     }
 
     @Override
-    public <K> Maps<K, Lists<T>> groupBy(Function<T, K> keySelector) {
+    public <K> Maps<K, Lists<T>> groupBy(ActionFunction<T, K> keySelector) {
         Map<K, Lists<T>> m = new HashMap<>();
         for (T t : this.ls) {
             K k = keySelector.apply(t);
@@ -288,7 +307,7 @@ public class Lists<T> implements CollectionLike<T, Lists<T>>, Associate<T> {
     }
 
     @Override
-    public <K, V> Maps<K, Lists<V>> groupBy(Function<T, K> keySelector, Function<T, V> valueSelector) {
+    public <K, V> Maps<K, Lists<V>> groupBy(ActionFunction<T, K> keySelector, ActionFunction<T, V> valueSelector) {
         Map<K, Lists<V>> m = new HashMap<>();
         for (T t : this.ls) {
             K k = keySelector.apply(t);
@@ -299,7 +318,7 @@ public class Lists<T> implements CollectionLike<T, Lists<T>>, Associate<T> {
         return Maps.wrap(m);
     }
 
-    public <X extends Comparable<X>> Lists<T> sortBy(Function<T, X> propertySelector) {
+    public <X extends Comparable<X>> Lists<T> sortBy(ActionFunction<T, X> propertySelector) {
         Comparator<T> comparator = (a, b) -> {
             X aa = propertySelector.apply(a);
             X bb = propertySelector.apply(b);
@@ -387,6 +406,7 @@ public class Lists<T> implements CollectionLike<T, Lists<T>>, Associate<T> {
     public Lists<T> intersection(CollectionLike<T, ?> other) {
         return this.intersection(other.getCollection());
     }
+
     public Lists<T> intersection(Collection<T> other) {
         List<T> ls = new ArrayList<>();
         Set<T> set = new HashSet<>(other);

@@ -100,7 +100,7 @@ public class Lists<T> implements CollectionLike<T, Lists<T>>, Associate<T> {
         return ls;
     }
 
-    public <R> Lists<R> flatMap(Function<T, Lists<R>> f) {
+    public <R> Lists<R> flatMap(ActionFunction<T, Lists<R>> f) {
         Lists<R> ls = Lists.empty();
         for (T t : this.ls) {
             ls.addAll(f.apply(t));
@@ -250,7 +250,7 @@ public class Lists<T> implements CollectionLike<T, Lists<T>>, Associate<T> {
         return false;
     }
 
-    public <X> Lists<X> map(Function<? super T, X> f) {
+    public <X> Lists<X> map(ActionFunction<? super T, X> f) {
         List<X> ls = new ArrayList<>(this.ls.size());
         for (T t : this.ls) {
             ls.add(f.apply(t));

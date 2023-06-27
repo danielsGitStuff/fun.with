@@ -1,5 +1,7 @@
 package fun.with;
 
+import fun.with.actions.ActionBiConsumer;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -24,6 +26,10 @@ public class Maps<K, V> {
 
     public static <K, V> Maps<K, V> wrap(Map<K, V> map) {
         return new Maps<>(map);
+    }
+
+    public static <K, V> Maps<K, V> empty() {
+        return Maps.wrap(new HashMap<>());
     }
 
     public Map<K, V> get() {
@@ -176,5 +182,12 @@ public class Maps<K, V> {
 
     public Maps<K, V> intersection(Maps<K, V> other) {
         return this.intersection(other.keySet().get());
+    }
+
+    public Maps<K, V> forEach(ActionBiConsumer<K, V> biConsumer) {
+        for (Map.Entry<K, V> e : this.m.entrySet()) {
+            biConsumer.accept(e.getKey(), e.getValue());
+        }
+        return this;
     }
 }

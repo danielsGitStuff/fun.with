@@ -190,4 +190,24 @@ public class Maps<K, V> {
         }
         return this;
     }
+
+    public <TT> Lists<TT> ls(BiFunction<K, V, TT> f) {
+        Lists<TT> ls = Lists.empty();
+        for (Map.Entry<K, V> e : this.m.entrySet()) {
+            ls.add(f.apply(e.getKey(), e.getValue()));
+        }
+        return ls;
+    }
+
+    public Lists<Pair<K, V>> ls() {
+        Lists<Pair<K, V>> ls = Lists.empty();
+        for (Map.Entry<K, V> e : this.m.entrySet()) {
+            ls.add(Pair.of(e.getKey(), e.getValue()));
+        }
+        return ls;
+    }
+
+    public Maps<K, V> copy() {
+        return Maps.wrap(new HashMap<>(this.m));
+    }
 }

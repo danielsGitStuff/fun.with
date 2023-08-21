@@ -23,7 +23,7 @@ public class Lists<T> implements CollectionLike<T, Lists<T>>, Associate<T> {
         return xs.mapIndexed((index, x) -> Pair.of(x, ys.get(index)));
     }
 
-    public <X> Lists<X> mapIndexed(BiFunction<Integer, ? super T, X> f) {
+    public <X> Lists<X> mapIndexed(ActionBiFunction<Integer, ? super T, X> f) {
         List<X> ls = new ArrayList<>(this.ls.size());
         int index = 0;
         for (T t : this.ls) {

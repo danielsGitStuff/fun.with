@@ -132,7 +132,7 @@ public class Attempt<T, S> {
         Lists<Integer> xs = Attempt.attempt(() -> Lists.of("1", "2", "3", "4")
                         .map(it -> Integer.parseInt(it)))
                 .onFail(e -> System.err.println("Mistake " + e.getMessage()))
-                .afterFunction(ls -> ls.forEach(s-> System.out.println("S="+s)))
+                .afterFunction(ls -> ls.forEach(i-> System.out.println("S="+i)))
                 .run();
         System.out.println("Attempt.main");
     }

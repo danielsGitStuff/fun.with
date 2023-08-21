@@ -1,9 +1,6 @@
 package fun.with;
 
-import fun.with.actions.ActionBiConsumer;
-import fun.with.actions.ActionConsumer;
-import fun.with.actions.ActionFunction;
-import fun.with.actions.ActionPredicate;
+import fun.with.actions.*;
 import fun.with.interfaces.Associate;
 import fun.with.interfaces.CollectionLike;
 
@@ -94,6 +91,26 @@ public class Sets<T> implements CollectionLike<T, Sets<T>>, Associate<T> {
             m.get(k).add(v);
         }
         return Maps.wrap(m);
+    }
+
+    public <X> Sets<X> map(ActionFunction<? super T, X> actionFunction) {
+        Sets<X> xs = Sets.empty();
+        for (T t : this.set) {
+            X x = actionFunction.apply(t);
+            xs.add(x);
+        }
+        return xs;
+    }
+
+    public <X> Sets<X> mapIndexed(ActionBiFunction<Integer, ? super T, X> actionFunction) {
+        Sets<X> xs = Sets.empty();
+        int index = 0;
+        for (T t : this.set) {
+            X x = actionFunction.apply(index, t);
+            xs.add(x);
+            index++;
+        }
+        return xs;
     }
 
     @Override
@@ -205,7 +222,8 @@ public class Sets<T> implements CollectionLike<T, Sets<T>>, Associate<T> {
             if (!predicate.test(t))
                 return false;
         }
-        return true;    }
+        return true;
+    }
 
     @Override
     public String toString() {
@@ -238,5 +256,11 @@ public class Sets<T> implements CollectionLike<T, Sets<T>>, Associate<T> {
             if (predicate.test(t))
                 return true;
         }
-        return false;    }
+        return false;
+    }
+
+
+    public static <X> Sets<X> empty() {
+        return new Sets<>(new HashSet<>());
+    }
 }

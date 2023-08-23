@@ -5,11 +5,14 @@ import fun.with.Maps;
 import fun.with.Pair;
 import fun.with.actions.ActionFunction;
 
+import java.util.Map;
 import java.util.function.Function;
 
 public interface Associate<T> {
 
-  <K, V> Maps<K, V> associate(ActionFunction<T, Pair<K, V>> association);
+    <K, V> Maps<K, V> associate(ActionFunction<T, Pair<K, V>> association, Map<K, V> m);
+
+    <K, V> Maps<K, V> associate(ActionFunction<T, Pair<K, V>> association);
 
   <K> Maps<K, T> associateBy(ActionFunction<T, K> keySelector);
 

@@ -65,6 +65,11 @@ public class UniqueLists<T> implements CollectionLike<T, UniqueLists<T>>, Associ
     }
 
     @Override
+    public <K, V> Maps<K, V> associate(ActionFunction<T, Pair<K, V>> association, Map<K, V> m) {
+        return Lists.wrap(this.ls).associate(association, m);
+    }
+
+    @Override
     public <K> Maps<K, T> associateBy(ActionFunction<T, K> keySelector) {
         return Lists.wrap(this.ls).associateBy(keySelector);
     }
@@ -198,4 +203,5 @@ public class UniqueLists<T> implements CollectionLike<T, UniqueLists<T>>, Associ
         }
         return false;
     }
+
 }

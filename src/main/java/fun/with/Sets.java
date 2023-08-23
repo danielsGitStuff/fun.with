@@ -30,10 +30,14 @@ public class Sets<T> implements CollectionLike<T, Sets<T>>, Associate<T> {
         return this.set;
     }
 
-
     @Override
     public <K, V> Maps<K, V> associate(ActionFunction<T, Pair<K, V>> association) {
         Map<K, V> m = new HashMap<>();
+        return this.associate(association, m);
+    }
+
+    @Override
+    public <K, V> Maps<K, V> associate(ActionFunction<T, Pair<K, V>> association, Map<K, V> m) {
         for (T t : this.set) {
             Pair<K, V> pair = association.apply(t);
             m.put(pair.k(), pair.v());

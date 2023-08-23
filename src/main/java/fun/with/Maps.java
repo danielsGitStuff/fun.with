@@ -1,6 +1,7 @@
 package fun.with;
 
 import fun.with.actions.ActionBiConsumer;
+import fun.with.actions.ActionTriConsumer;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -191,6 +192,15 @@ public class Maps<K, V> {
         return this;
     }
 
+    public Maps<K, V> forEachIndexed(ActionTriConsumer<Integer, K, V> biConsumer) {
+        int index = 0;
+        for (Map.Entry<K, V> e : this.m.entrySet()) {
+            biConsumer.accept(index, e.getKey(), e.getValue());
+            index++;
+        }
+        return this;
+    }
+
     public <TT> Lists<TT> ls(BiFunction<K, V, TT> f) {
         Lists<TT> ls = Lists.empty();
         for (Map.Entry<K, V> e : this.m.entrySet()) {
@@ -209,5 +219,20 @@ public class Maps<K, V> {
 
     public Maps<K, V> copy() {
         return Maps.wrap(new HashMap<>(this.m));
+    }
+
+    public String join(String limiter, String keyValueSeparator) {
+        return this.join(limiter,keyValueSeparator, "\"","\"");
+    }
+
+    public String join(String limiter, String keyValueSeparator, String keyWrapper, String valueWrapper) {
+        StringBuilder b = new StringBuilder();
+        this.forEachIndexed((integer, k, v) -> {
+            b.append(keyWrapper).append(k).append(keyWrapper).append(keyValueSeparator).append(valueWrapper).append(v).append(valueWrapper);
+            if (integer < this.size() - 1) {
+                b.append(limiter);
+            }
+        });
+        return b.toString();
     }
 }

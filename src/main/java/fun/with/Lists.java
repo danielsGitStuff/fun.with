@@ -5,7 +5,6 @@ import fun.with.interfaces.Associate;
 import fun.with.interfaces.CollectionLike;
 
 import java.util.*;
-import java.util.function.*;
 
 public class Lists<T> implements CollectionLike<T, Lists<T>>, Associate<T> {
 
@@ -259,13 +258,17 @@ public class Lists<T> implements CollectionLike<T, Lists<T>>, Associate<T> {
     }
 
     @Override
-    public <K, V> Maps<K, V> associate(ActionFunction<T, Pair<K, V>> association) {
-        Map<K, V> m = new HashMap<>();
+    public <K, V> Maps<K, V> associate(ActionFunction<T, Pair<K, V>> association, Map<K, V> m) {
         for (T t : this.ls) {
             Pair<K, V> p = association.apply(t);
             m.put(p.k(), p.v());
         }
         return Maps.wrap(m);
+    }
+
+    @Override
+    public <K, V> Maps<K, V> associate(ActionFunction<T, Pair<K, V>> association) {
+        return this.associate(association, new HashMap<>());
     }
 
     @Override

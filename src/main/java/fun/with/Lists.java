@@ -425,4 +425,7 @@ public class Lists<T> implements CollectionLike<T, Lists<T>>, Associate<T> {
         return this.intersection(set);
     }
 
+    public T second() {
+        return this.ls.get(1);
+    }
 }

@@ -1,11 +1,10 @@
 package fun.with;
 
 import fun.with.actions.ActionBiConsumer;
+import fun.with.actions.ActionBiFunction;
 import fun.with.actions.ActionTriConsumer;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.function.BiFunction;
 import java.util.function.BiPredicate;
 import java.util.function.Function;
@@ -45,7 +44,7 @@ public class Maps<K, V> {
         return Sets.wrap(this.m.keySet());
     }
 
-    public <KK, VV> Maps<KK, VV> map(BiFunction<K, V, Pair<KK, VV>> f) {
+    public <KK, VV> Maps<KK, VV> map(ActionBiFunction<K, V, Pair<KK, VV>> f) {
         Map<KK, VV> m = new HashMap<>();
         for (Map.Entry<K, V> e : this.m.entrySet()) {
             Pair<KK, VV> pair = f.apply(e.getKey(), e.getValue());
@@ -53,6 +52,7 @@ public class Maps<K, V> {
         }
         return Maps.wrap(m);
     }
+
 
     public V get(K k) {
         return m.get(k);
@@ -202,11 +202,11 @@ public class Maps<K, V> {
     }
 
     public <TT> Lists<TT> ls(BiFunction<K, V, TT> f) {
-        Lists<TT> ls = Lists.empty();
+        List<TT> ls = new ArrayList<>(this.m.size());
         for (Map.Entry<K, V> e : this.m.entrySet()) {
             ls.add(f.apply(e.getKey(), e.getValue()));
         }
-        return ls;
+        return Lists.wrap(ls);
     }
 
     public Lists<Pair<K, V>> ls() {
@@ -222,7 +222,7 @@ public class Maps<K, V> {
     }
 
     public String join(String limiter, String keyValueSeparator) {
-        return this.join(limiter,keyValueSeparator, "\"","\"");
+        return this.join(limiter, keyValueSeparator, "\"", "\"");
     }
 
     public String join(String limiter, String keyValueSeparator, String keyWrapper, String valueWrapper) {
@@ -234,5 +234,9 @@ public class Maps<K, V> {
             }
         });
         return b.toString();
+    }
+
+    public <X, Y> Maps<X, Y> cast(Class<X> x, Class<Y> y) {
+        return this.map((k, v) -> Pair.of((X) k, (Y) v));
     }
 }

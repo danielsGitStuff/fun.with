@@ -229,7 +229,7 @@ public class DataFrame {
 
     public DataFrame print() {
         Lists<Integer> columnCharCount = this.columns.map(String::length);
-        String join = "| " + columnCharCount.zip(this.columns).map(p -> p.v() + " | ").join("");
+        String join = "| " + this.columns.map(c -> c + " | ").join("");
         System.out.println(Lists.of("-").repeat(join.length()).join(""));
         System.out.println(join);
         System.out.println(Lists.of("-").repeat(join.length()).join(""));

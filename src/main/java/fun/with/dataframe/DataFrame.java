@@ -2,12 +2,12 @@ package fun.with.dataframe;
 
 import fun.with.*;
 import fun.with.annotations.Unstable;
+import fun.with.interfaces.CollectionLike;
 
 import java.io.File;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Function;
 
 @Unstable
 public class DataFrame {
@@ -131,6 +131,10 @@ public class DataFrame {
         return this;
     }
 
+    public DataFrame setColumns(String... columns) {
+        return this.setColumns(Lists.wrap(columns));
+    }
+
     public Lists<String> getColumns() {
         return columns;
     }
@@ -148,9 +152,13 @@ public class DataFrame {
         return this;
     }
 
-    DataFrame setNoNumberColumns(Sets<String> noNumberColumns) {
+    public DataFrame setNoNumberColumns(Sets<String> noNumberColumns) {
         this.noNumberColumns = noNumberColumns;
         return this;
+    }
+
+    public DataFrame setNoNumberColumns(String... noNumberColumns) {
+        return this.setNoNumberColumns(Sets.wrap(noNumberColumns));
     }
 
     public Sets<Integer> getNoNumberColumnIndices() {
@@ -180,6 +188,13 @@ public class DataFrame {
         }
     }
 
+    private void checkColumnNames(CollectionLike<String, ?> columnNames) {
+        for (String c : columnNames.getCollection()) {
+            if (!this.column2index.containsKey(c))
+                throw new RuntimeException("Unknown column '" + c + "'");
+        }
+    }
+
     public Sets<String> getNoNumberColumns() {
         return this.noNumberColumns;
     }
@@ -189,13 +204,63 @@ public class DataFrame {
     }
 
     public DataFrame drop(String... columns) {
-//        this.checkColumnNames(columns);
-//        Sets<String> columnsToKeep = Sets.wrap(columns);
-//        Lists<Integer> columnIndicesToKeep = this.column2index.map((s, integer) ->);
-//        DataFrameBuilder builder = DataFrameBuilder.empty(Lists.wrap(columns))//
-//                .setNoNumberColumns(Lists.wrap(columns).filter(c -> this.noNumberColumnIndices.contains(this.column2index.get(c))).sets());//;
-//        this.t.map(row -> row.filterIndexed((integer, o) ->)).forEach(builder::feedRow);
-//        return builder.build();
-        return null;
+        this.checkColumnNames(columns);
+        Sets<String> columnsToKeep = this.columns.sets().subtract(Sets.wrap(columns));
+        return this.keep(columnsToKeep);
+    }
+
+    public DataFrame keep(String... columns) {
+        return this.keep(Sets.wrap(columns));
+    }
+
+    public DataFrame keep(Sets<String> columnsToKeepSet) {
+        this.checkColumnNames(columns);
+        Sets<Integer> columnIndicesToKeep = columnsToKeepSet.map(c -> this.column2index.get(c));
+        Lists<String> columnsToKeep = this.columns.filter(columnsToKeepSet::contains);
+        Sets<String> noNumberColumnsToKeep = this.noNumberColumns.filter(columnsToKeepSet::contains);
+        Lists<Lists<Object>> newT = Lists.empty();
+        this.t.forEach(row -> newT.add(row.filterIndexed((integer, o) -> columnIndicesToKeep.contains(integer))));
+        return new DataFrame(newT).setColumns(columnsToKeep).setNoNumberColumns(noNumberColumnsToKeep);
+    }
+
+    public Lists<Lists<Object>> getRows() {
+        return this.t;
+    }
+
+    public DataFrame print() {
+        Lists<Integer> columnCharCount = this.columns.map(String::length);
+        String join = "| " + columnCharCount.zip(this.columns).map(p -> p.v() + " | ").join("");
+        System.out.println(Lists.of("-").repeat(join.length()).join(""));
+        System.out.println(join);
+        System.out.println(Lists.of("-").repeat(join.length()).join(""));
+        Lists<Integer> absIndices = Lists.empty();
+        if (this.t.size() > 10) {
+            Lists<Integer> first8 = this.t.take(8).mapIndexed((idx, ignore) -> idx);
+            absIndices.addAll(first8);
+            absIndices.add(this.t.size() - 1);
+        } else {
+            absIndices = Lists.wrap(this.indices);
+        }
+        absIndices.forEachIndexed((count, rowIndex) -> {
+            Lists<Object> row = this.t.get(rowIndex);
+            String rowString = "| " + row.mapIndexed((colIdx, o) -> o == null ? "null" : o.toString()).mapIndexed((colIdx, s) -> DataFrame.fillStr(s, columnCharCount.get(colIdx)) + " | ").join("");
+            if (count == 8 && this.t.size() > 10 && join.length() > 5) {
+                String extraLine = DataFrame.fillStr("|    ....", join.length() - 2);
+                extraLine += "|";
+                System.out.println(extraLine);
+            }
+            System.out.println(rowString);
+        });
+        System.out.println(Lists.of("-").repeat(join.length()).join(""));
+        return this;
+    }
+
+    public static String fillStr(String s, int length) {
+        if (s.length() > length) {
+            s = s.substring(0, length);
+        } else if (s.length() < length) {
+            s += Lists.of(" ").repeat(length - s.length()).join("");
+        }
+        return s;
     }
 }

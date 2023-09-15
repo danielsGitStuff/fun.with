@@ -37,7 +37,7 @@ public class Lists<T> implements CollectionLike<T, Lists<T>>, Associate<T> {
     }
 
     public static <X> Lists<X> wrap(List<X> xs) {
-        return new Lists<>(xs);
+        return new Lists<>(new ArrayList<>(xs));
     }
 
     public static <X, Y> Lists<Pair<X, Y>> zip(List<X> xs, Lists<Y> ys) {
@@ -61,7 +61,7 @@ public class Lists<T> implements CollectionLike<T, Lists<T>>, Associate<T> {
     }
 
     public static <X> Lists<X> wrap(X[] xs) {
-        return new Lists<>(Arrays.asList(xs));
+        return Lists.wrap(Arrays.asList(xs));
     }
 
     public static <X> Lists<X> of(X... xs) {
@@ -161,6 +161,17 @@ public class Lists<T> implements CollectionLike<T, Lists<T>>, Associate<T> {
         List<T> ls = new ArrayList<>();
         for (T t : this.ls) {
             if (predicate.test(t)) {
+                ls.add(t);
+            }
+        }
+        return Lists.wrap(ls);
+    }
+
+    public Lists<T> filterIndexed(ActionBiPredicate<Integer, ? super T> predicate) {
+        List<T> ls = new ArrayList<>();
+        int index = 0;
+        for (T t : this.ls) {
+            if (predicate.test(index++, t)) {
                 ls.add(t);
             }
         }
@@ -267,8 +278,23 @@ public class Lists<T> implements CollectionLike<T, Lists<T>>, Associate<T> {
     }
 
     @Override
+    public <K, V> Maps<K, V> associateIndexed(ActionBiFunction<Integer, T, Pair<K, V>> association, Map<K, V> m) {
+        int index = 0;
+        for (T t : this.ls) {
+            Pair<K, V> p = association.apply(index++, t);
+            m.put(p.k(), p.v());
+        }
+        return Maps.wrap(m);
+    }
+
+    @Override
     public <K, V> Maps<K, V> associate(ActionFunction<T, Pair<K, V>> association) {
         return this.associate(association, new HashMap<>());
+    }
+
+    @Override
+    public <K, V> Maps<K, V> associateIndexed(ActionBiFunction<Integer, T, Pair<K, V>> association) {
+        return this.associateIndexed(association, new HashMap<>());
     }
 
     @Override
@@ -294,6 +320,26 @@ public class Lists<T> implements CollectionLike<T, Lists<T>>, Associate<T> {
         Map<T, V> m = new HashMap<>();
         for (T t : this.ls) {
             m.put(t, v);
+        }
+        return Maps.wrap(m);
+    }
+
+    @Override
+    public <K> Maps<K, T> associateByIndexed(ActionBiFunction<Integer, T, K> keySelector) {
+        int index = 0;
+        Map<K, T> m = new HashMap<>();
+        for (T t : this.ls) {
+            m.put(keySelector.apply(index++, t), t);
+        }
+        return Maps.wrap(m);
+    }
+
+    @Override
+    public <V> Maps<T, V> associateWithIndexed(ActionBiFunction<Integer, T, V> valueSelector) {
+        int index = 0;
+        Map<T, V> m = new HashMap<>();
+        for (T t : this.ls) {
+            m.put(t, valueSelector.apply(index++, t));
         }
         return Maps.wrap(m);
     }
@@ -427,5 +473,9 @@ public class Lists<T> implements CollectionLike<T, Lists<T>>, Associate<T> {
 
     public T second() {
         return this.ls.get(1);
+    }
+
+    public <X> Lists<X> cast(Class<X> clazz) {
+        return this.map(t -> (X) t);
     }
 }

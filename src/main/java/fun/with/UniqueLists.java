@@ -1,9 +1,6 @@
 package fun.with;
 
-import fun.with.actions.ActionBiConsumer;
-import fun.with.actions.ActionConsumer;
-import fun.with.actions.ActionFunction;
-import fun.with.actions.ActionPredicate;
+import fun.with.actions.*;
 import fun.with.annotations.Unstable;
 import fun.with.interfaces.Associate;
 import fun.with.interfaces.CollectionLike;
@@ -65,8 +62,18 @@ public class UniqueLists<T> implements CollectionLike<T, UniqueLists<T>>, Associ
     }
 
     @Override
+    public <K, V> Maps<K, V> associateIndexed(ActionBiFunction<Integer, T, Pair<K, V>> association) {
+        return Lists.wrap(this.ls).associateIndexed(association);
+    }
+
+    @Override
     public <K, V> Maps<K, V> associate(ActionFunction<T, Pair<K, V>> association, Map<K, V> m) {
         return Lists.wrap(this.ls).associate(association, m);
+    }
+
+    @Override
+    public <K, V> Maps<K, V> associateIndexed(ActionBiFunction<Integer, T, Pair<K, V>> association, Map<K, V> m) {
+        return Lists.wrap(this.ls).associateIndexed(association, m);
     }
 
     @Override
@@ -82,6 +89,16 @@ public class UniqueLists<T> implements CollectionLike<T, UniqueLists<T>>, Associ
     @Override
     public <V> Maps<T, V> associateWith(V v) {
         return Lists.wrap(this.ls).associateWith(v);
+    }
+
+    @Override
+    public <K> Maps<K, T> associateByIndexed(ActionBiFunction<Integer, T, K> keySelector) {
+        return Lists.wrap(this.ls).associateByIndexed(keySelector);
+    }
+
+    @Override
+    public <V> Maps<T, V> associateWithIndexed(ActionBiFunction<Integer, T, V> valueSelector) {
+        return Lists.wrap(this.ls).associateWithIndexed(valueSelector);
     }
 
     @Override

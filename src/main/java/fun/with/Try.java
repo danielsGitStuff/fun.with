@@ -4,11 +4,20 @@ import fun.with.annotations.Unstable;
 import fun.with.interfaces.TryRunnable;
 import fun.with.interfaces.TryWithSupplier;
 import fun.with.misc.TryWith;
+import fun.with.misc.TryWithClosable;
 
 @Unstable(reason = "not sure it handles that well")
 public class Try {
 
-    public static <X extends AutoCloseable> TryWith<X> with(TryWithSupplier<X> supplier) {
+    public static <X extends AutoCloseable> TryWithClosable<X> withClosable(TryWithSupplier<X> supplier) {
+        try {
+            return new TryWithClosable<>(supplier.supply());
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static <X> TryWith<X> with(TryWithSupplier<X> supplier) {
         try {
             return new TryWith<>(supplier.supply());
         } catch (Exception e) {

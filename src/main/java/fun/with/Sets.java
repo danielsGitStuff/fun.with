@@ -32,14 +32,28 @@ public class Sets<T> implements CollectionLike<T, Sets<T>>, Associate<T> {
 
     @Override
     public <K, V> Maps<K, V> associate(ActionFunction<T, Pair<K, V>> association) {
-        Map<K, V> m = new HashMap<>();
-        return this.associate(association, m);
+        return this.associate(association, new HashMap<>());
+    }
+
+    @Override
+    public <K, V> Maps<K, V> associateIndexed(ActionBiFunction<Integer, T, Pair<K, V>> association) {
+        return this.associateIndexed(association, new HashMap<>());
     }
 
     @Override
     public <K, V> Maps<K, V> associate(ActionFunction<T, Pair<K, V>> association, Map<K, V> m) {
         for (T t : this.set) {
             Pair<K, V> pair = association.apply(t);
+            m.put(pair.k(), pair.v());
+        }
+        return Maps.wrap(m);
+    }
+
+    @Override
+    public <K, V> Maps<K, V> associateIndexed(ActionBiFunction<Integer, T, Pair<K, V>> association, Map<K, V> m) {
+        int index = 0;
+        for (T t : this.set) {
+            Pair<K, V> pair = association.apply(index++, t);
             m.put(pair.k(), pair.v());
         }
         return Maps.wrap(m);
@@ -69,6 +83,28 @@ public class Sets<T> implements CollectionLike<T, Sets<T>>, Associate<T> {
     public <V> Maps<T, V> associateWith(V v) {
         Map<T, V> m = new HashMap<>();
         for (T t : this.set) {
+            m.put(t, v);
+        }
+        return Maps.wrap(m);
+    }
+
+    @Override
+    public <K> Maps<K, T> associateByIndexed(ActionBiFunction<Integer, T, K> keySelector) {
+        int index = 0;
+        Map<K, T> m = new HashMap<>();
+        for (T t : this.set) {
+            K k = keySelector.apply(index++, t);
+            m.put(k, t);
+        }
+        return Maps.wrap(m);
+    }
+
+    @Override
+    public <V> Maps<T, V> associateWithIndexed(ActionBiFunction<Integer, T, V> valueSelector) {
+        int index = 0;
+        Map<T, V> m = new HashMap<>();
+        for (T t : this.set) {
+            V v = valueSelector.apply(index++, t);
             m.put(t, v);
         }
         return Maps.wrap(m);

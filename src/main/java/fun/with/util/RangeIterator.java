@@ -24,7 +24,7 @@ public class RangeIterator<T extends Number> implements Iterator<T> {
 
     @Override
     public boolean hasNext() {
-        if (this.positive) return this.doubleCurrent <= this.doubleStop;
+        if (this.positive) return this.doubleCurrent < this.doubleStop;
         return this.doubleCurrent >= this.doubleStop;
     }
 

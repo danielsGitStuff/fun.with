@@ -34,7 +34,17 @@ public class DFRow {
         return this;
     }
 
-    public Object get(int columnIndex) {
+    public DFValue get(int columnIndex) {
+        return new DFValue(this.values.get(columnIndex));
+    }
+
+    public DFValue get(String columnName) {
+        this.df.checkColumnNames(columnName);
+        int idx = this.df.column2index.get(columnName);
+        return new DFValue(this.values.get(idx));
+    }
+
+    public Object getRaw(int columnIndex) {
         return this.values.get(columnIndex);
     }
 
@@ -43,12 +53,12 @@ public class DFRow {
         return Pair.of(result.k(), new DFRow().setDf(this.df).setValues(result.v()));
     }
 
-    public Lists<Object> filterIndexed(ActionBiPredicate<Integer, Object> f) {
-        return this.values.filterIndexed(f);
+    public Lists<Object> filterIndexed(ActionBiPredicate<Integer, DFValue> f) {
+        return this.values.filterIndexed((integer, o) -> f.test(integer, new DFValue(o)));
     }
 
-    public <X> Lists<X> mapIndexed(ActionBiFunction<Integer, Object, X> f) {
-        return this.values.mapIndexed(f);
+    public <X> Lists<X> mapIndexed(ActionBiFunction<Integer, DFValue, X> f) {
+        return this.values.mapIndexed((integer, o) -> f.apply(integer, new DFValue(o)));
     }
 
     public int contentHash() {
@@ -57,7 +67,15 @@ public class DFRow {
         return Objects.hash(arr);
     }
 
-    public Lists<Object> getValues() {
-        return this.values;
+    public Lists<DFValue> getValues() {
+        return this.values.map(DFValue::new);
+    }
+
+    public DFValue last() {
+        return new DFValue(this.values.last());
+    }
+
+    public DFValue first() {
+        return new DFValue(this.values.first());
     }
 }

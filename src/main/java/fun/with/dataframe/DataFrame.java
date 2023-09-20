@@ -3,6 +3,7 @@ package fun.with.dataframe;
 import fun.with.*;
 import fun.with.annotations.Unstable;
 import fun.with.interfaces.CollectionLike;
+import org.w3c.dom.html.HTMLCollection;
 
 import java.io.File;
 import java.nio.file.Files;
@@ -34,6 +35,7 @@ public class DataFrame {
         Lists<DFRow> rows = t.map(ls -> new DFRow().setValues(ls));
         DataFrame df = new DataFrame(rows, indices);
         df.t.forEach(r -> r.setDf(df));
+        df.initColumns();
         return df;
     }
 
@@ -49,6 +51,12 @@ public class DataFrame {
         this.t = DataFrame.transpose(castedColumnWise);
         this.indices = indices;
         this.t.forEach(row -> row.setDf(this));
+        this.initColumns();
+    }
+
+    private void initColumns() {
+        this.columns = Range.of(this.rowSize).ls().map(i -> "Column" + i);
+        this.column2index = this.columns.associateIndexed((idx, c) -> Pair.of(c, idx));
     }
 
     DataFrame(Lists<DFRow> rows) {
@@ -67,13 +75,6 @@ public class DataFrame {
                 }
         );
         return df;
-    }
-
-    public static void main(String[] args) {
-        Lists<Integer> ls = Range.of(1).ls();
-        DataFrame df = DataFrame.fromCsv(new File("C:\\Users\\ddecker\\Downloads\\VS_Nachkommastaffeln.txt"), "\t");
-        DataFrame nonNull = df.select("Preis").filter(vs -> vs.first().intValue() != 0).df();
-        System.out.println("DataFrame.main");
     }
 
     /**
@@ -109,10 +110,14 @@ public class DataFrame {
         Lists<DFRow> columnWise = Range.of(rowSize).ls().map(integer -> new DFRow());
         for (int columnIndex = 0; columnIndex < rowSize; columnIndex++) {
             for (int rowIndex = 0; rowIndex < t.size(); rowIndex++) {
-                columnWise.get(columnIndex).addValue(t.get(rowIndex).get(columnIndex));
+                columnWise.get(columnIndex).addValue(t.get(rowIndex).getRaw(columnIndex));
             }
         }
         return columnWise;
+    }
+
+    public DataFrame transpose() {
+        return new DataFrame(DataFrame.transpose(this.t));
     }
 
 //    /**
@@ -219,19 +224,28 @@ public class DataFrame {
     }
 
     public Selection select(String... columnNames) {
-        Selection selection = new Selection(this, Lists.wrap(columnNames));
+        Selection selection = Selection.of(this, columnNames);
         this.checkColumnNames(columnNames);
         return selection;
     }
 
-    private void checkColumnNames(String[] columnNames) {
+    public Selection select(Integer... columnIndices) {
+        Selection selection = Selection.of(this, Lists.wrap(columnIndices));
+        return selection;
+    }
+
+    /**
+     *
+     * @param columnNames
+     */
+    public void checkColumnNames(String... columnNames) {
         for (String c : columnNames) {
             if (!this.column2index.containsKey(c))
                 throw new RuntimeException("Unknown column '" + c + "'");
         }
     }
 
-    private void checkColumnNames(CollectionLike<String, ?> columnNames) {
+    public void checkColumnNames(CollectionLike<String, ?> columnNames) {
         for (String c : columnNames.getCollection()) {
             if (!this.column2index.containsKey(c))
                 throw new RuntimeException("Unknown column '" + c + "'");
@@ -287,7 +301,7 @@ public class DataFrame {
         }
         absIndices.forEachIndexed((count, rowIndex) -> {
             DFRow row = this.t.get(rowIndex);
-            String rowString = "| " + row.mapIndexed((colIdx, o) -> o == null ? "null" : o.toString()).mapIndexed((colIdx, s) -> DataFrame.fillStr(s, columnCharCount.get(colIdx)) + " | ").join("");
+            String rowString = "| " + row.mapIndexed((colIdx, o) -> o.isNull() ? "null" : o.toString()).mapIndexed((colIdx, s) -> DataFrame.fillStr(s, columnCharCount.get(colIdx)) + " | ").join("");
             if (count == 8 && this.t.size() > 10 && join.length() > 5) {
                 String extraLine = DataFrame.fillStr("|    ....", join.length() - 2);
                 extraLine += "|";
@@ -311,6 +325,10 @@ public class DataFrame {
 
     public Lists<Object> getColumn(String column) {
         Integer idx = this.column2index.get(column);
+        return this.t.map(row -> row.get(idx));
+    }
+
+    public Lists<Object> getColumn(Integer idx) {
         return this.t.map(row -> row.get(idx));
     }
 }

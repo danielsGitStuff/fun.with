@@ -303,4 +303,8 @@ public class Sets<T> implements CollectionLike<T, Sets<T>>, Associate<T> {
     public static <X> Sets<X> empty() {
         return new Sets<>(new HashSet<>());
     }
+
+    public void print() {
+        System.out.println(this.toString());
+    }
 }

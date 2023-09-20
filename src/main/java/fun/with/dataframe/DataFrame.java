@@ -11,7 +11,7 @@ import java.util.List;
 
 @Unstable
 public class DataFrame {
-    Lists<Lists<Object>> t;
+    Lists<DFRow> t;
     Lists<String> columns;
     Integer rowSize;
 
@@ -26,21 +26,33 @@ public class DataFrame {
     /**
      * @param t each item in t is a row in a table
      */
-    public DataFrame(Lists<Lists<Object>> t) {
-        this(t, Range.of(t.size()).ls().get());
+    public static DataFrame fromLists(Lists<Lists<Object>> t) {
+        return DataFrame.fromLists(t, Range.of(t.size()).ls().get());
     }
 
-    DataFrame(Lists<Lists<Object>> t, List<Integer> indices) {
-        this.rowSize = DataFrame.checkTable(t);
-        Lists<Lists<Object>> columnWise = DataFrame.transpose(t);
-        Lists<Lists<Object>> castedColumnWise = Lists.empty();
-        for (Lists<Object> column : columnWise.get()) {
-            Pair<ColumnCast, Lists<Object>> casted = DataFrame.cast(column);
+    public static DataFrame fromLists(Lists<Lists<Object>> t, List<Integer> indices) {
+        Lists<DFRow> rows = t.map(ls -> new DFRow().setValues(ls));
+        DataFrame df = new DataFrame(rows, indices);
+        df.t.forEach(r -> r.setDf(df));
+        return df;
+    }
+
+    DataFrame(Lists<DFRow> rows, List<Integer> indices) {
+        this.rowSize = DataFrame.checkTable(rows);
+        Lists<DFRow> columnWise = DataFrame.transpose(rows);
+        Lists<DFRow> castedColumnWise = Lists.empty();
+        for (DFRow column : columnWise.get()) {
+            Pair<ColumnCast, DFRow> casted = column.cast();
             castedColumnWise.add(casted.v());
             this.columnCasts.add(casted.k());
         }
         this.t = DataFrame.transpose(castedColumnWise);
         this.indices = indices;
+        this.t.forEach(row -> row.setDf(this));
+    }
+
+    DataFrame(Lists<DFRow> rows) {
+        this(rows, Range.of(rows.size()).ls().get());
     }
 
     public static DataFrame fromCsv(File csvFile, String delimiter) {
@@ -50,7 +62,7 @@ public class DataFrame {
                     Lists<String> columnNames = ss.first().map(Object::toString);
                     Lists<Lists<Object>> content = ss.drop(1);
                     content.map(os -> os.addAll(columnNames.size() - os.size() > 0 ? Range.of(columnNames.size() - os.size()).ls().map(x -> null) : Lists.empty())); // fill up missing values
-                    DataFrame d = new DataFrame(content).setColumns(columnNames);
+                    DataFrame d = DataFrame.fromLists(content).setColumns(columnNames);
                     return d;
                 }
         );
@@ -70,7 +82,7 @@ public class DataFrame {
      * @param column
      * @return a column cast to the first type that could cast all values
      */
-    private static Pair<ColumnCast, Lists<Object>> cast(Lists<Object> column) {
+    public static Pair<ColumnCast, Lists<Object>> cast(Lists<Object> column) {
         Lists<Object> casted = null;
         ColumnCast successfulCast = null;
         for (ColumnCast cast : ColumnCast.CASTS.get()) {
@@ -92,15 +104,46 @@ public class DataFrame {
      * @param t the table to transpose
      * @return Columns and rows flipped
      */
-    private static Lists<Lists<Object>> transpose(Lists<Lists<Object>> t) {
+    private static Lists<DFRow> transpose(Lists<DFRow> t) {
         Integer rowSize = DataFrame.checkTable(t);
-        Lists<Lists<Object>> columnWise = Range.of(rowSize).ls().map(integer -> (Lists<Object>) Lists.empty());
+        Lists<DFRow> columnWise = Range.of(rowSize).ls().map(integer -> new DFRow());
         for (int columnIndex = 0; columnIndex < rowSize; columnIndex++) {
             for (int rowIndex = 0; rowIndex < t.size(); rowIndex++) {
-                columnWise.get(columnIndex).add(t.get(rowIndex).get(columnIndex));
+                columnWise.get(columnIndex).addValue(t.get(rowIndex).get(columnIndex));
             }
         }
         return columnWise;
+    }
+
+//    /**
+//     * @param t the table to transpose
+//     * @return Columns and rows flipped
+//     */
+//    private static Lists<Lists<Object>> transpose2(Lists<Lists<Object>> t) {
+//        Integer rowSize = DataFrame.checkTable(t);
+//        Lists<Lists<Object>> columnWise = Range.of(rowSize).ls().map(integer -> (Lists<Object>) Lists.empty());
+//        for (int columnIndex = 0; columnIndex < rowSize; columnIndex++) {
+//            for (int rowIndex = 0; rowIndex < t.size(); rowIndex++) {
+//                columnWise.get(columnIndex).add(t.get(rowIndex).get(columnIndex));
+//            }
+//        }
+//        return columnWise;
+//    }
+
+    /**
+     * check whether all rows have the same amount of columns
+     *
+     * @param t
+     * @return
+     */
+    private static Integer checkTable2(Lists<Lists<Object>> t) {
+        Sets<Integer> differentRowLengths = t.map(Lists::size).sets();
+        if (differentRowLengths.size() > 1) {
+            throw new RuntimeException("All rows have to have the same length.");
+        }
+        if (!differentRowLengths.isEmpty())
+            return differentRowLengths.iterator().next();
+        return null;
     }
 
     /**
@@ -109,8 +152,8 @@ public class DataFrame {
      * @param t
      * @return
      */
-    private static Integer checkTable(Lists<Lists<Object>> t) {
-        Sets<Integer> differentRowLengths = t.map(Lists::size).sets();
+    private static Integer checkTable(Lists<DFRow> t) {
+        Sets<Integer> differentRowLengths = t.map(DFRow::size).sets();
         if (differentRowLengths.size() > 1) {
             throw new RuntimeException("All rows have to have the same length.");
         }
@@ -139,13 +182,13 @@ public class DataFrame {
         return columns;
     }
 
-    public DataFrame feedRow(Lists<Object> row) {
-        if (this.rowSize != null && this.rowSize != row.size())
-            throw new RuntimeException("Rows are expected to have " + this.rowSize + " columns. You tried to add one with " + row.size() + " columns");
-        this.t.add(row);
-        this.indices.add(this.indices.size());
-        return this;
-    }
+//    public DataFrame feedRow(Lists<Object> row) {
+//        if (this.rowSize != null && this.rowSize != row.size())
+//            throw new RuntimeException("Rows are expected to have " + this.rowSize + " columns. You tried to add one with " + row.size() + " columns");
+//        this.t.add(row);
+//        this.indices.add(this.indices.size());
+//        return this;
+//    }
 
     DataFrame setNoNumberColumnIndices(Sets<Integer> noNumberColumns) {
         this.noNumberColumnIndices = noNumberColumns;
@@ -218,18 +261,19 @@ public class DataFrame {
         Sets<Integer> columnIndicesToKeep = columnsToKeepSet.map(c -> this.column2index.get(c));
         Lists<String> columnsToKeep = this.columns.filter(columnsToKeepSet::contains);
         Sets<String> noNumberColumnsToKeep = this.noNumberColumns.filter(columnsToKeepSet::contains);
-        Lists<Lists<Object>> newT = Lists.empty();
-        this.t.forEach(row -> newT.add(row.filterIndexed((integer, o) -> columnIndicesToKeep.contains(integer))));
+        Lists<DFRow> newT = Lists.empty();
+        this.t.forEach(row -> newT.add(new DFRow().setDf(this).setValues(row.filterIndexed((integer, o) -> columnIndicesToKeep.contains(integer)))));
         return new DataFrame(newT).setColumns(columnsToKeep).setNoNumberColumns(noNumberColumnsToKeep);
     }
 
-    public Lists<Lists<Object>> getRows() {
+    public Lists<DFRow> getRows() {
         return this.t;
     }
 
     public DataFrame print() {
         Lists<Integer> columnCharCount = this.columns.map(String::length);
         String join = "| " + this.columns.map(c -> c + " | ").join("");
+        System.out.println(Lists.of("-").repeat(join.length()).join(""));
         System.out.println(Lists.of("-").repeat(join.length()).join(""));
         System.out.println(join);
         System.out.println(Lists.of("-").repeat(join.length()).join(""));
@@ -242,7 +286,7 @@ public class DataFrame {
             absIndices = Lists.wrap(this.indices);
         }
         absIndices.forEachIndexed((count, rowIndex) -> {
-            Lists<Object> row = this.t.get(rowIndex);
+            DFRow row = this.t.get(rowIndex);
             String rowString = "| " + row.mapIndexed((colIdx, o) -> o == null ? "null" : o.toString()).mapIndexed((colIdx, s) -> DataFrame.fillStr(s, columnCharCount.get(colIdx)) + " | ").join("");
             if (count == 8 && this.t.size() > 10 && join.length() > 5) {
                 String extraLine = DataFrame.fillStr("|    ....", join.length() - 2);
@@ -252,6 +296,7 @@ public class DataFrame {
             System.out.println(rowString);
         });
         System.out.println(Lists.of("-").repeat(join.length()).join(""));
+        System.out.println(" -> " + this.t.size() + " rows");
         return this;
     }
 
@@ -262,5 +307,10 @@ public class DataFrame {
             s += Lists.of(" ").repeat(length - s.length()).join("");
         }
         return s;
+    }
+
+    public Lists<Object> getColumn(String column) {
+        Integer idx = this.column2index.get(column);
+        return this.t.map(row -> row.get(idx));
     }
 }

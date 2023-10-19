@@ -239,4 +239,16 @@ public class Maps<K, V> {
     public <X, Y> Maps<X, Y> cast(Class<X> x, Class<Y> y) {
         return this.map((k, v) -> Pair.of((X) k, (Y) v));
     }
+
+    public <X> Maps<X, V> mapKeys(ActionBiFunction<K, V, X> f) {
+        Map<X, V> xm = new HashMap<>();
+        this.m.forEach((key, value) -> xm.put(f.apply(key, value), value));
+        return Maps.wrap(xm);
+    }
+
+    public <X> Maps<K, X> mapValues(ActionBiFunction<K, V, X> f) {
+        Map<K, X> xm = new HashMap<>();
+        this.m.forEach((key, value) -> xm.put(key, f.apply(key, value)));
+        return Maps.wrap(xm);
+    }
 }

@@ -5,8 +5,46 @@ import fun.with.interfaces.Associate;
 import fun.with.interfaces.CollectionLike;
 
 import java.util.*;
+import java.util.function.BiConsumer;
+import java.util.function.BinaryOperator;
+import java.util.function.Function;
+import java.util.function.Supplier;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
 
 public class Lists<T> implements CollectionLike<T, Lists<T>>, Associate<T> {
+
+    public static <X> Collector<X, ?, Lists<X>> collect() {
+        return new Collector<X, Lists<X>, Lists<X>>() {
+            @Override
+            public Supplier<Lists<X>> supplier() {
+                return Lists::empty;
+            }
+
+            @Override
+            public BiConsumer<Lists<X>, X> accumulator() {
+                return Lists::add;
+            }
+
+            @Override
+            public BinaryOperator<Lists<X>> combiner() {
+                return (left, right) -> {
+                    left.addAll(right);
+                    return left;
+                };
+            }
+
+            @Override
+            public Function<Lists<X>, Lists<X>> finisher() {
+                return xLists -> xLists;
+            }
+
+            @Override
+            public Set<Characteristics> characteristics() {
+                return Collections.unmodifiableSet(EnumSet.of(Characteristics.IDENTITY_FINISH));
+            }
+        };
+    }
 
     private final List<T> ls;
 
@@ -477,5 +515,25 @@ public class Lists<T> implements CollectionLike<T, Lists<T>>, Associate<T> {
 
     public <X> Lists<X> cast(Class<X> clazz) {
         return this.map(t -> (X) t);
+    }
+
+    public <X> Lists<T> applySequence(Lists<X> xs, ActionBiFunction<X, T, T> f) {
+        List<T> ys = new ArrayList<>(this.ls.size());
+        for (T t : this.ls) {
+            T current = t;
+            for (X x : xs.ls) {
+                current = f.apply(x, current);
+            }
+            ys.add(current);
+        }
+        return Lists.wrap(ys);
+    }
+
+    public <X> X applyTo(X x, ActionBiFunction<X, T, X> f) {
+        X current = x;
+        for (T t : this.ls) {
+            current = f.apply(current, t);
+        }
+        return current;
     }
 }

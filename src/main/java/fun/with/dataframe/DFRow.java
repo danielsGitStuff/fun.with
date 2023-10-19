@@ -78,4 +78,13 @@ public class DFRow {
     public DFValue first() {
         return new DFValue(this.values.first());
     }
+
+    @Override
+    public String toString() {
+        return this.values.join(" , ");
+    }
+
+    public DataFrame getDf() {
+        return this.df;
+    }
 }

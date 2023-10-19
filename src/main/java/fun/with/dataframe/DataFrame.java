@@ -3,7 +3,6 @@ package fun.with.dataframe;
 import fun.with.*;
 import fun.with.annotations.Unstable;
 import fun.with.interfaces.CollectionLike;
-import org.w3c.dom.html.HTMLCollection;
 
 import java.io.File;
 import java.nio.file.Files;
@@ -120,37 +119,6 @@ public class DataFrame {
         return new DataFrame(DataFrame.transpose(this.t));
     }
 
-//    /**
-//     * @param t the table to transpose
-//     * @return Columns and rows flipped
-//     */
-//    private static Lists<Lists<Object>> transpose2(Lists<Lists<Object>> t) {
-//        Integer rowSize = DataFrame.checkTable(t);
-//        Lists<Lists<Object>> columnWise = Range.of(rowSize).ls().map(integer -> (Lists<Object>) Lists.empty());
-//        for (int columnIndex = 0; columnIndex < rowSize; columnIndex++) {
-//            for (int rowIndex = 0; rowIndex < t.size(); rowIndex++) {
-//                columnWise.get(columnIndex).add(t.get(rowIndex).get(columnIndex));
-//            }
-//        }
-//        return columnWise;
-//    }
-
-    /**
-     * check whether all rows have the same amount of columns
-     *
-     * @param t
-     * @return
-     */
-    private static Integer checkTable2(Lists<Lists<Object>> t) {
-        Sets<Integer> differentRowLengths = t.map(Lists::size).sets();
-        if (differentRowLengths.size() > 1) {
-            throw new RuntimeException("All rows have to have the same length.");
-        }
-        if (!differentRowLengths.isEmpty())
-            return differentRowLengths.iterator().next();
-        return null;
-    }
-
     /**
      * check whether all rows have the same amount of columns
      *
@@ -187,14 +155,14 @@ public class DataFrame {
         return columns;
     }
 
-//    public DataFrame feedRow(Lists<Object> row) {
+    //    public DataFrame feedRow(Lists<Object> row) {
 //        if (this.rowSize != null && this.rowSize != row.size())
 //            throw new RuntimeException("Rows are expected to have " + this.rowSize + " columns. You tried to add one with " + row.size() + " columns");
 //        this.t.add(row);
 //        this.indices.add(this.indices.size());
 //        return this;
 //    }
-
+    @Deprecated
     DataFrame setNoNumberColumnIndices(Sets<Integer> noNumberColumns) {
         this.noNumberColumnIndices = noNumberColumns;
         return this;
@@ -202,6 +170,7 @@ public class DataFrame {
 
     public DataFrame setNoNumberColumns(Sets<String> noNumberColumns) {
         this.noNumberColumns = noNumberColumns;
+        this.noNumberColumnIndices = this.noNumberColumns.map(c -> this.column2index.get(c));
         return this;
     }
 
@@ -235,7 +204,6 @@ public class DataFrame {
     }
 
     /**
-     *
      * @param columnNames
      */
     public void checkColumnNames(String... columnNames) {
@@ -285,14 +253,35 @@ public class DataFrame {
     }
 
     public DataFrame print() {
+        return this.print(null, 10);
+    }
+
+    public DataFrame printAll(String title) {
+
+        Maps<String, Integer> col2LengthMap = this.columns.associate(c -> Pair.of(c, Ints.max(this.getColumn(c).map(o -> o.toString().length()))));
+        Lists<String> filledColumns = this.columns.map(c -> DataFrame.fillStr(c, col2LengthMap.get(c)));
+        DataFrame df = new DataFrame(this.t, this.indices).setColumns(filledColumns);
+        df.print(title, null);
+        return this;
+    }
+
+    public DataFrame print(String title) {
+        return this.print(title, 10);
+    }
+
+    public DataFrame print(String title, Integer noOfRows) {
         Lists<Integer> columnCharCount = this.columns.map(String::length);
         String join = "| " + this.columns.map(c -> c + " | ").join("");
-        System.out.println(Lists.of("-").repeat(join.length()).join(""));
-        System.out.println(Lists.of("-").repeat(join.length()).join(""));
+        final String bars = Lists.of("-").repeat(join.length()).join("");
+        if (title != null) {
+            System.out.println(bars);
+            System.out.println(DataFrame.fillStr("| " + title + " ", bars.length() - 2) + "| ");
+        }
+        System.out.println(bars);
         System.out.println(join);
-        System.out.println(Lists.of("-").repeat(join.length()).join(""));
+        System.out.println(bars);
         Lists<Integer> absIndices = Lists.empty();
-        if (this.t.size() > 10) {
+        if (noOfRows != null && this.t.size() > noOfRows) {
             Lists<Integer> first8 = this.t.take(8).mapIndexed((idx, ignore) -> idx);
             absIndices.addAll(first8);
             absIndices.add(this.t.size() - 1);
@@ -302,7 +291,7 @@ public class DataFrame {
         absIndices.forEachIndexed((count, rowIndex) -> {
             DFRow row = this.t.get(rowIndex);
             String rowString = "| " + row.mapIndexed((colIdx, o) -> o.isNull() ? "null" : o.toString()).mapIndexed((colIdx, s) -> DataFrame.fillStr(s, columnCharCount.get(colIdx)) + " | ").join("");
-            if (count == 8 && this.t.size() > 10 && join.length() > 5) {
+            if (noOfRows != null && count == noOfRows - 2 && this.t.size() > noOfRows && join.length() > 5) {
                 String extraLine = DataFrame.fillStr("|    ....", join.length() - 2);
                 extraLine += "|";
                 System.out.println(extraLine);
@@ -323,7 +312,7 @@ public class DataFrame {
         return s;
     }
 
-    public Lists<Object> getColumn(String column) {
+    public Lists<DFValue> getColumn(String column) {
         Integer idx = this.column2index.get(column);
         return this.t.map(row -> row.get(idx));
     }
@@ -331,4 +320,6 @@ public class DataFrame {
     public Lists<Object> getColumn(Integer idx) {
         return this.t.map(row -> row.get(idx));
     }
+
+
 }

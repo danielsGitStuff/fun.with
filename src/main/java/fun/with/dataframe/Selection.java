@@ -2,10 +2,12 @@ package fun.with.dataframe;
 
 import fun.with.Lists;
 import fun.with.Sets;
+import fun.with.actions.ActionFunction;
 import fun.with.actions.ActionPredicate;
 import fun.with.annotations.Unstable;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 /**
@@ -43,16 +45,16 @@ public class Selection {
     }
 
     /**
-     * @param function takes the selected
+     * @param predicate takes the selected
      * @return
      */
-    public Selection filter(ActionPredicate<Lists<DFValue>> function) {
+    public Selection filter(ActionPredicate<Lists<DFValue>> predicate) {
         List<Integer> newSelectedRows = new ArrayList<>();
         Lists<Integer> columnIndices = this.selectedColumnNames.map(c -> this.df.column2index.get(c));
         for (int rowIndex : this.selectedRows) {
             DFRow row = this.df.t.get(rowIndex);
             Lists<DFValue> selectedRow = columnIndices.map(row::get);
-            Boolean keep = function.test(selectedRow);
+            Boolean keep = predicate.test(selectedRow);
             if (keep)
                 newSelectedRows.add(rowIndex);
         }
@@ -74,7 +76,7 @@ public class Selection {
             t.add(row);
             indices.add(idx++);
         }
-        return new DataFrame(t, indices).setColumns(this.df.columns);
+        return new DataFrame(t, indices).setColumns(this.df.columns).setNoNumberColumns(this.df.getNoNumberColumns());
     }
 
     public Selection unique() {
@@ -84,8 +86,8 @@ public class Selection {
             DFRow row = new DFRow();
             for (String column : this.selectedColumnNames.get()) {
                 Integer columnIdx = this.df.column2index.get(column);
-                Object o = this.df.t.get(rowIndex).get(columnIdx);
-                row.addValue(o);
+                DFValue o = this.df.t.get(rowIndex).get(columnIdx);
+                row.addValue(o.getObject());
             }
             int contentHash = row.contentHash();
             if (!contentHashes.contains(contentHash)) {
@@ -94,5 +96,18 @@ public class Selection {
             contentHashes.add(contentHash);
         }
         return new Selection(this.df, this.selectedColumnNames, selectedRows);
+    }
+
+    public Selection sort(Comparator<Lists<DFValue>> comparator) {
+        Lists<Integer> columnIndices = this.selectedColumnNames.map(c -> this.df.column2index.get(c));
+        List<Integer> newSelectedRows = new ArrayList<>(this.selectedRows);
+        newSelectedRows.sort((i1, i2) -> {
+            DFRow row1 = Selection.this.df.getRows().get(i1);
+            Lists<DFValue> values1 = columnIndices.map(row1::get);
+            DFRow row2 = Selection.this.df.getRows().get(i2);
+            Lists<DFValue> values2 = columnIndices.map(row2::get);
+            return comparator.compare(values1, values2);
+        });
+        return new Selection(this.df, this.selectedColumnNames, newSelectedRows);
     }
 }

@@ -11,6 +11,13 @@ public class Pair<K, V> {
         this.v = v;
     }
 
+    public ChainablePair<K,V> and(K k, V v) {
+        ChainablePair<K,V> chainablePair = new ChainablePair<>();
+        chainablePair.add(this);
+        chainablePair.add(Pair.of(k, v));
+        return chainablePair;
+    }
+
     public Pair<K, V> k(K k) {
         this.k = k;
         return this;

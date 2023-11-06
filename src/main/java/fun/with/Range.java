@@ -13,6 +13,13 @@ public class Range<T extends Number> implements Iterable<T> {
     private final boolean positive;
     private final Class<? extends Number> type;
 
+    /**
+     *
+     * @param start is inclusive
+     * @param stop is exclusive
+     * @param step
+     */
+
     private Range(T start, T stop, T step) {
         this.start = start;
         this.stop = stop;
@@ -22,6 +29,14 @@ public class Range<T extends Number> implements Iterable<T> {
         Checks.check("step must go the same direction as start -> end", () -> this.step.doubleValue() > 0 == (this.stop.doubleValue() > this.start.doubleValue()));
     }
 
+    /**
+     *
+     * @param start is inclusive
+     * @param stop is exclusive
+     * @param step
+     * @return
+     * @param <X>
+     */
     public static <X extends Number> Range<X> of(X start, X stop, X step) {
         return new Range<>(start, stop, step);
     }

@@ -19,9 +19,9 @@ public class Permutations<T> {
         final int size = (int) java.lang.Math.pow(n, k);
         Lists<Lists<T>> result = Lists.wrap(new ArrayList<>((int) size));
         Integer[] wheelIndices = new Integer[k];
-        Range.of(k - 1).forEach(i -> wheelIndices[i] = 0);
+        Range.of(k).forEach(i -> wheelIndices[i] = 0);
         for (int ignored = 0; ignored < size; ignored++) {
-            Lists<T> ls = Lists.wrap(wheelIndices).map(this.values::get);
+            Lists<T> ls = Lists.of(wheelIndices).map(this.values::get);
             result.add(ls);
             for (int i = 0; i < k; i++) {
                 int v = wheelIndices[i];

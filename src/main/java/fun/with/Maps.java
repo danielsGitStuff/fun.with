@@ -32,16 +32,20 @@ public class Maps<K, V> {
         return Maps.wrap(new HashMap<>());
     }
 
+    public static <K, V> Maps<K, V> empty(Class<K> klass, Class<V> vlass) {
+        return Maps.wrap(new HashMap<>());
+    }
+
     public Map<K, V> get() {
         return this.m;
     }
 
     public Lists<V> values() {
-        return Lists.wrap(this.m.values());
+        return Lists.of(this.m.values());
     }
 
     public Sets<K> keySet() {
-        return Sets.wrap(this.m.keySet());
+        return Sets.of(this.m.keySet());
     }
 
     public <KK, VV> Maps<KK, VV> map(ActionBiFunction<K, V, Pair<KK, VV>> f) {
@@ -70,6 +74,15 @@ public class Maps<K, V> {
 
     public Maps<K, V> putAll(Map<? extends K, ? extends V> map) {
         m.putAll(map);
+        return this;
+    }
+
+    public Maps<K, V> putAll(Maps<? extends K, ? extends V> map) {
+        return this.putAll(map.m);
+    }
+
+    public Maps<K, V> addTo(Map<K, V> map) {
+        map.putAll(this.m);
         return this;
     }
 

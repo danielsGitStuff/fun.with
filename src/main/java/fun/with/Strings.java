@@ -33,7 +33,7 @@ public class Strings {
     }
 
     public Lists<Character> toLists() {
-        return Lists.wrap(this.toCharArray());
+        return Lists.of(this.toCharArray());
     }
 
 

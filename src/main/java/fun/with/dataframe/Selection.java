@@ -2,7 +2,6 @@ package fun.with.dataframe;
 
 import fun.with.Lists;
 import fun.with.Sets;
-import fun.with.actions.ActionFunction;
 import fun.with.actions.ActionPredicate;
 import fun.with.annotations.Unstable;
 
@@ -23,7 +22,7 @@ public class Selection {
     private final List<Integer> selectedRows;
 
     public static Selection of(DataFrame df, String... selectedColumns) {
-        return Selection.of(df, Lists.wrap(selectedColumns), null);
+        return Selection.of(df, Lists.of(selectedColumns), null);
     }
 
     public static Selection of(DataFrame df, Lists<Integer> selectedColumnIndices) {

@@ -5,10 +5,6 @@ import fun.with.interfaces.Associate;
 import fun.with.interfaces.CollectionLike;
 
 import java.util.*;
-import java.util.function.BiConsumer;
-import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.function.Predicate;
 
 public class Sets<T> implements CollectionLike<T, Sets<T>>, Associate<T> {
 
@@ -18,12 +14,16 @@ public class Sets<T> implements CollectionLike<T, Sets<T>>, Associate<T> {
         this.set = set;
     }
 
-    public static <X> Sets<X> wrap(X... xs) {
-        return Sets.wrap(Arrays.asList(xs));
+    public static <X> Sets<X> of(X... xs) {
+        return Sets.of(Arrays.asList(xs));
     }
 
-    public static <X> Sets<X> wrap(Collection<X> xs) {
+    public static <X> Sets<X> of(Collection<X> xs) {
         return new Sets<>(new HashSet<>(xs));
+    }
+
+    public static <X> Sets<X> wrap(Set<X> xs) {
+        return new Sets<>(xs);
     }
 
     public Set<T> get() {
@@ -179,7 +179,7 @@ public class Sets<T> implements CollectionLike<T, Sets<T>>, Associate<T> {
                 set.add(t);
             }
         }
-        return Sets.wrap(set);
+        return Sets.of(set);
     }
 
     @Override
@@ -232,7 +232,7 @@ public class Sets<T> implements CollectionLike<T, Sets<T>>, Associate<T> {
     }
 
     public Lists<T> ls() {
-        return Lists.wrap(this.set);
+        return Lists.of(this.set);
     }
 
     public Sets<T> subtract(Sets<T> others) {
@@ -240,7 +240,7 @@ public class Sets<T> implements CollectionLike<T, Sets<T>>, Associate<T> {
     }
 
     public Sets<T> union(Sets<T> others) {
-        Sets<T> result = Sets.wrap(this.set);
+        Sets<T> result = Sets.of(this.set);
         result.addAll(others);
         return result;
     }
@@ -283,7 +283,7 @@ public class Sets<T> implements CollectionLike<T, Sets<T>>, Associate<T> {
     public Sets<T> intersection(Set<T> other) {
         Set<T> set = new HashSet<>(this.set);
         set.retainAll(other);
-        return Sets.wrap(set);
+        return Sets.of(set);
     }
 
     public Sets<T> intersection(Sets<T> other) {
@@ -306,5 +306,10 @@ public class Sets<T> implements CollectionLike<T, Sets<T>>, Associate<T> {
 
     public void print() {
         System.out.println(this.toString());
+    }
+
+    public Sets<T> clear() {
+        this.set.clear();
+        return this;
     }
 }

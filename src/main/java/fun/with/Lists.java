@@ -10,7 +10,6 @@ import java.util.function.BinaryOperator;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collector;
-import java.util.stream.Collectors;
 
 public class Lists<T> implements CollectionLike<T, Lists<T>>, Associate<T> {
 
@@ -52,9 +51,6 @@ public class Lists<T> implements CollectionLike<T, Lists<T>>, Associate<T> {
         this.ls = ls;
     }
 
-    public static <X> Lists<X> wrap(Collection<X> xs) {
-        return new Lists<>(new ArrayList<>(xs));
-    }
 
     public static <X, Y> Lists<Pair<X, Y>> zip(Lists<X> xs, Lists<Y> ys) {
         return xs.mapIndexed((index, x) -> Pair.of(x, ys.get(index)));
@@ -74,9 +70,7 @@ public class Lists<T> implements CollectionLike<T, Lists<T>>, Associate<T> {
         return this.ls.get(index);
     }
 
-    public static <X> Lists<X> wrap(List<X> xs) {
-        return new Lists<>(new ArrayList<>(xs));
-    }
+
 
     public static <X, Y> Lists<Pair<X, Y>> zip(List<X> xs, Lists<Y> ys) {
         return Lists.wrap(xs).mapIndexed((index, x) -> Pair.of(x, ys.get(index)));
@@ -98,8 +92,13 @@ public class Lists<T> implements CollectionLike<T, Lists<T>>, Associate<T> {
         return new Lists<>(ls);
     }
 
-    public static <X> Lists<X> wrap(X[] xs) {
-        return Lists.wrap(Arrays.asList(xs));
+
+    public static <X> Lists<X> wrap(List<X> xs) {
+        return new Lists<>(xs);
+    }
+
+    public static <X> Lists<X> of(Collection<X> xs) {
+        return Lists.wrap(new ArrayList<>(xs));
     }
 
     public static <X> Lists<X> of(X... xs) {
@@ -248,7 +247,7 @@ public class Lists<T> implements CollectionLike<T, Lists<T>>, Associate<T> {
 
     @Override
     public Lists<T> unique() {
-        return Lists.wrap(new LinkedHashSet<>(this.ls));
+        return Lists.of(new LinkedHashSet<>(this.ls));
     }
 
     public UniqueLists<T> toUniqueLists() {
@@ -475,7 +474,7 @@ public class Lists<T> implements CollectionLike<T, Lists<T>>, Associate<T> {
     }
 
     public Sets<T> sets() {
-        return Sets.wrap(this.ls);
+        return Sets.of(this.ls);
     }
 
     public Lists<T> copy() {

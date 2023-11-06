@@ -65,7 +65,7 @@ public class DataFrame {
     public static DataFrame fromCsv(File csvFile, String delimiter) {
         Try.supply(() -> Files.readAllLines(csvFile.toPath()));
         DataFrame df = Try.with(() -> Files.readAllLines(csvFile.toPath())).function(strings -> {
-                    Lists<Lists<Object>> ss = Lists.wrap(strings).map(s -> Lists.wrap(s.split(delimiter)).cast(Object.class));
+                    Lists<Lists<Object>> ss = Lists.wrap(strings).map(s -> Lists.of(s.split(delimiter)).cast(Object.class));
                     Lists<String> columnNames = ss.first().map(Object::toString);
                     Lists<Lists<Object>> content = ss.drop(1);
                     content.map(os -> os.addAll(columnNames.size() - os.size() > 0 ? Range.of(columnNames.size() - os.size()).ls().map(x -> null) : Lists.empty())); // fill up missing values
@@ -148,7 +148,7 @@ public class DataFrame {
     }
 
     public DataFrame setColumns(String... columns) {
-        return this.setColumns(Lists.wrap(columns));
+        return this.setColumns(Lists.of(columns));
     }
 
     public Lists<String> getColumns() {
@@ -199,7 +199,7 @@ public class DataFrame {
     }
 
     public Selection select(Integer... columnIndices) {
-        Selection selection = Selection.of(this, Lists.wrap(columnIndices));
+        Selection selection = Selection.of(this, Lists.of(columnIndices));
         return selection;
     }
 

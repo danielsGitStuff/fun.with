@@ -10,7 +10,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 public class RangeTest {
     @Test
     public void normal() {
-        Lists<Integer> ls = Range.of(0, 5, 1).ls();
+        Lists<Integer> ls = Range.of(0, 6, 1).ls();
         assertEquals(6, ls.size());
         ls.forEachIndexed(Assertions::assertEquals);
     }

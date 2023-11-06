@@ -175,7 +175,7 @@ public class DataFrame {
     }
 
     public DataFrame setNoNumberColumns(String... noNumberColumns) {
-        return this.setNoNumberColumns(Sets.wrap(noNumberColumns));
+        return this.setNoNumberColumns(Sets.of(noNumberColumns));
     }
 
     public Sets<Integer> getNoNumberColumnIndices() {
@@ -230,12 +230,12 @@ public class DataFrame {
 
     public DataFrame drop(String... columns) {
         this.checkColumnNames(columns);
-        Sets<String> columnsToKeep = this.columns.sets().subtract(Sets.wrap(columns));
+        Sets<String> columnsToKeep = this.columns.sets().subtract(Sets.of(columns));
         return this.keep(columnsToKeep);
     }
 
     public DataFrame keep(String... columns) {
-        return this.keep(Sets.wrap(columns));
+        return this.keep(Sets.of(columns));
     }
 
     public DataFrame keep(Sets<String> columnsToKeepSet) {

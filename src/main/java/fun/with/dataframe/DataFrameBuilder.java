@@ -56,7 +56,7 @@ public class DataFrameBuilder {
     }
 
     public DataFrameBuilder setNoNumberColumns(String... columns) {
-        return this.setNoNumberColumns(Sets.wrap(columns));
+        return this.setNoNumberColumns(Sets.of(columns));
     }
 
     public DataFrameBuilder setNoNumberColumns(Sets<String> columns) {

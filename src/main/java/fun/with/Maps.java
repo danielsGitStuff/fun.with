@@ -41,7 +41,7 @@ public class Maps<K, V> {
     }
 
     public Lists<V> values() {
-        return Lists.of(this.m.values());
+        return Lists.from(this.m.values());
     }
 
     public Sets<K> keySet() {
@@ -163,6 +163,8 @@ public class Maps<K, V> {
      * @return
      */
     public Maps<K, V> toMap(Map<K, V> targetMap) {
+        if (targetMap == this.m)
+            return this;
         targetMap.clear();
         targetMap.putAll(this.m);
         return this;

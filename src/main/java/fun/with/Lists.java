@@ -11,6 +11,15 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collector;
 
+/**
+ * <ul>
+ * <li>'from' methods take elements of something that is already some kind of iterable and hold its content in a new list.</li>
+ * <li>'of' methods take one or more individual elements and put them into a list.</li>
+ * <li>'wrap' methods just reference the list argument such that changes that occur to the argument list also affect the current instance of Lists.</li>
+ * </ul>
+ *
+ * @param <T>
+ */
 public class Lists<T> implements CollectionLike<T, Lists<T>>, Associate<T> {
 
     public static <X> Collector<X, ?, Lists<X>> collect() {
@@ -71,7 +80,6 @@ public class Lists<T> implements CollectionLike<T, Lists<T>>, Associate<T> {
     }
 
 
-
     public static <X, Y> Lists<Pair<X, Y>> zip(List<X> xs, Lists<Y> ys) {
         return Lists.wrap(xs).mapIndexed((index, x) -> Pair.of(x, ys.get(index)));
     }
@@ -84,7 +92,14 @@ public class Lists<T> implements CollectionLike<T, Lists<T>>, Associate<T> {
         return Lists.wrap(xs).mapIndexed((index, x) -> Pair.of(x, ys.get(index)));
     }
 
-    public static <X> Lists<X> wrap(Iterator<X> xs) {
+    /**
+     * creates a new {@link Lists} with everything still in the iterator
+     *
+     * @param xs
+     * @param <X>
+     * @return
+     */
+    public static <X> Lists<X> from(Iterator<X> xs) {
         List<X> ls = new ArrayList<>();
         while (xs.hasNext()) {
             ls.add(xs.next());
@@ -92,15 +107,35 @@ public class Lists<T> implements CollectionLike<T, Lists<T>>, Associate<T> {
         return new Lists<>(ls);
     }
 
-
+    /**
+     * Uses xs as the underlying list. Changes to that list also occur in here though.
+     *
+     * @param xs
+     * @param <X>
+     * @return
+     */
     public static <X> Lists<X> wrap(List<X> xs) {
         return new Lists<>(xs);
     }
 
-    public static <X> Lists<X> of(Collection<X> xs) {
+    /**
+     * Creates a new list with everything in xs. No reference to xs is kept.
+     *
+     * @param xs
+     * @param <X>
+     * @return
+     */
+    public static <X> Lists<X> from(Collection<X> xs) {
         return Lists.wrap(new ArrayList<>(xs));
     }
 
+    /**
+     * Creates a new list with everything in xs.
+     *
+     * @param xs
+     * @param <X>
+     * @return
+     */
     public static <X> Lists<X> of(X... xs) {
         return new Lists<>(Arrays.asList(xs));
     }
@@ -144,6 +179,12 @@ public class Lists<T> implements CollectionLike<T, Lists<T>>, Associate<T> {
         return ls;
     }
 
+    /**
+     * Creates an empty list.
+     *
+     * @param <X>
+     * @return
+     */
     public static <X> Lists<X> empty() {
         return new Lists<>(new ArrayList<>());
     }
@@ -247,7 +288,7 @@ public class Lists<T> implements CollectionLike<T, Lists<T>>, Associate<T> {
 
     @Override
     public Lists<T> unique() {
-        return Lists.of(new LinkedHashSet<>(this.ls));
+        return Lists.from(new LinkedHashSet<>(this.ls));
     }
 
     public UniqueLists<T> toUniqueLists() {
@@ -503,13 +544,17 @@ public class Lists<T> implements CollectionLike<T, Lists<T>>, Associate<T> {
         return Lists.wrap(ls);
     }
 
-    public Lists<T> keep(T... ts) {
+    public Lists<T> intersection(T... ts) {
         Set<T> set = new HashSet<>(Arrays.asList(ts));
         return this.intersection(set);
     }
 
     public T second() {
         return this.ls.get(1);
+    }
+
+    public T third() {
+        return this.ls.get(2);
     }
 
     public <X> Lists<X> cast(Class<X> clazz) {

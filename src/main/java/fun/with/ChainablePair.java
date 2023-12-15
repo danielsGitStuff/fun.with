@@ -19,4 +19,10 @@ public class ChainablePair<K, V> {
         this.elements.forEachIndexed((i, pair) -> arr[i] = pair);
         return arr;
     }
+
+    public<X,Y> ChainablePair<X,Y> cast(Class<X> x, Class<Y> y) {
+        ChainablePair<X,Y> cp = new ChainablePair<>();
+        this.elements.forEach(pair -> cp.add(Pair.of((X) pair.k(), (Y) pair.v())));
+        return cp;
+    }
 }

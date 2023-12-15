@@ -6,11 +6,6 @@ import fun.with.interfaces.Associate;
 import fun.with.interfaces.CollectionLike;
 
 import java.util.*;
-import java.util.function.BiConsumer;
-import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.function.Predicate;
-import java.util.stream.Collectors;
 
 /**
  * Like {@link Lists} but keeps elements unique using a {@link HashMap}.

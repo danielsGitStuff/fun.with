@@ -75,7 +75,7 @@ public class Range<T extends Number> implements Iterable<T> {
     }
 
     public Lists<T> ls() {
-        return Lists.wrap(this.iterator());
+        return Lists.from(this.iterator());
     }
 
     @Override

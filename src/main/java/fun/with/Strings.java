@@ -32,7 +32,7 @@ public class Strings {
         return characters;
     }
 
-    public Lists<Character> toLists() {
+    public Lists<Character> ls() {
         return Lists.of(this.toCharArray());
     }
 

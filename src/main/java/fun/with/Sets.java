@@ -232,7 +232,7 @@ public class Sets<T> implements CollectionLike<T, Sets<T>>, Associate<T> {
     }
 
     public Lists<T> ls() {
-        return Lists.of(this.set);
+        return Lists.from(this.set);
     }
 
     public Sets<T> subtract(Sets<T> others) {

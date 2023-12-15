@@ -2,21 +2,21 @@ package fun.with;
 
 import fun.with.interfaces.CollectionLike;
 
-public class Ints {
-    private Integer i;
+public class Longs {
+    private Long i;
     private String format;
 
-    public Ints(String s) {
-        this.i = Integer.parseInt(s);
+    public Longs(String s) {
+        this.i = Long.parseLong(s);
     }
 
-    public Ints(int i) {
+    public Longs(Long i) {
         this.i = i;
     }
 
-    public static Integer max(CollectionLike<Integer, ?> ints) {
-        Integer max = null;
-        for (Integer i : ints.getCollection()) {
+    public static Long max(CollectionLike<Long, ?> longs) {
+        Long max = null;
+        for (Long i : longs.getCollection()) {
             if (max == null)
                 max = i;
             else {
@@ -26,35 +26,35 @@ public class Ints {
         return max;
     }
 
-    public static Ints of(String s) {
-        return new Ints(s);
+    public static Longs of(String s) {
+        return new Longs(s);
     }
 
-    public static Ints of(int i) {
-        return new Ints(i);
+    public static Longs of(Long i) {
+        return new Longs(i);
     }
 
-    public Ints inc() {
+    public Longs inc() {
         this.i++;
         return this;
     }
 
-    public Ints add(Integer i) {
+    public Longs add(Long i) {
         this.i += i;
         return this;
     }
 
-    public Ints subtract(Integer i) {
+    public Longs subtract(Long i) {
         this.i -= i;
         return this;
     }
 
-    public Ints multiply(Integer i) {
+    public Longs multiply(Long i) {
         this.i *= i;
         return this;
     }
 
-    public Ints divide(Integer i) {
+    public Longs divide(Long i) {
         this.i /= i;
         return this;
     }
@@ -66,7 +66,7 @@ public class Ints {
         return String.format(this.format, i);
     }
 
-    public Ints format(String format) {
+    public Longs format(String format) {
         this.format = format;
         return this;
     }

@@ -289,4 +289,14 @@ public class ListsTest extends BaseTest {
         Sets<Integer> s = Lists.of(1, 2, 3).sets();
         Range.of(1, 3).ls().forEach(i -> assertTrue(s.contains(i)));
     }
+
+    @Test
+    void view(){
+        Lists<Integer> xs = Range.of(1, 10).ls();
+        Lists<Lists<Integer>> ys = xs.reshape(3);
+        assertEquals(3, ys.size());
+        ys.forEachIndexed((rowIndex, ints) -> {
+            ints.forEachIndexed((columnIndex, i) -> assertEquals((rowIndex) * 3 + columnIndex + 1, i));
+        });
+    }
 }

@@ -1,10 +1,10 @@
-package fun.with;
+package fun.with.unstable;
 
 import fun.with.annotations.Unstable;
 import fun.with.interfaces.TryRunnable;
 import fun.with.interfaces.TryWithSupplier;
-import fun.with.misc.TryWith;
-import fun.with.misc.TryWithClosable;
+import fun.with.unstable.TryWith;
+import fun.with.unstable.TryWithClosable;
 
 @Unstable(reason = "not sure it handles that well")
 public class Try {

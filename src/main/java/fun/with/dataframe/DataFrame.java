@@ -3,6 +3,7 @@ package fun.with.dataframe;
 import fun.with.*;
 import fun.with.annotations.Unstable;
 import fun.with.interfaces.CollectionLike;
+import fun.with.unstable.Try;
 
 import java.io.File;
 import java.nio.file.Files;
@@ -68,6 +69,22 @@ public class DataFrame {
                     Lists<Lists<Object>> ss = Lists.wrap(strings).map(s -> Lists.of(s.split(delimiter)).cast(Object.class));
                     Lists<String> columnNames = ss.first().map(Object::toString);
                     Lists<Lists<Object>> content = ss.drop(1);
+                    content.map(os -> os.addAll(columnNames.size() - os.size() > 0 ? Range.of(columnNames.size() - os.size()).ls().map(x -> null) : Lists.empty())); // fill up missing values
+                    DataFrame d = DataFrame.fromLists(content).setColumns(columnNames);
+                    return d;
+                }
+        );
+        return df;
+    }
+
+    public static DataFrame fromCsv2(File csvFile, String delimiter) {
+        DataFrame df = Try.with(() -> Files.readAllLines(csvFile.toPath())).function(strings -> {
+                    Lists<String> lines = Lists.wrap(strings);
+                    Lists<String> columnNames = Lists.of(lines.first().split(delimiter));
+                    StringBuilder b = new StringBuilder();
+                    lines.drop(1).forEach(b::append);
+                    Lists<String> splits = Lists.of(b.toString().split(delimiter));
+                    Lists<Lists<Object>> content = splits.reshape(columnNames.size()).map( lists -> lists.cast(Object.class));
                     content.map(os -> os.addAll(columnNames.size() - os.size() > 0 ? Range.of(columnNames.size() - os.size()).ls().map(x -> null) : Lists.empty())); // fill up missing values
                     DataFrame d = DataFrame.fromLists(content).setColumns(columnNames);
                     return d;

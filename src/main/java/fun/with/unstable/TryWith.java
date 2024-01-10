@@ -1,10 +1,7 @@
-package fun.with.misc;
+package fun.with.unstable;
 
-import fun.with.Try;
 import fun.with.interfaces.TryWithConsumer;
 import fun.with.interfaces.TryWithFunction;
-
-import java.io.FileInputStream;
 
 public class TryWith<T> {
 

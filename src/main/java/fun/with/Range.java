@@ -52,6 +52,13 @@ public class Range<T extends Number> implements Iterable<T> {
         Range.of(1.0,3.6,.5).forEach(System.out::println);
     }
 
+    /**
+     * Returns a Range of (including) start and (excluding) stop.
+     * @param start inclusive
+     * @param stop exclusive
+     * @return
+     * @param <X>
+     */
     public static <X extends Number> Range<X> of(X start, X stop) {
         int intStep = (stop.doubleValue() > start.doubleValue()) ? 1 : -1;
         X step = NumberCasting.castLike(start, intStep);

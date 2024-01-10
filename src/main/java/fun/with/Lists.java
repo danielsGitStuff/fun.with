@@ -137,7 +137,7 @@ public class Lists<T> implements CollectionLike<T, Lists<T>>, Associate<T> {
      * @return
      */
     public static <X> Lists<X> of(X... xs) {
-        return new Lists<>(Arrays.asList(xs));
+        return new Lists<>(new ArrayList<>(Arrays.asList(xs)));
     }
 
     public String join(final String separator) {
@@ -344,6 +344,24 @@ public class Lists<T> implements CollectionLike<T, Lists<T>>, Associate<T> {
             ls.add(f.apply(t));
         }
         return Lists.wrap(ls);
+    }
+
+    public Lists<Lists<T>> reshape(Integer numRows){
+        if (!(this.size() % numRows == 0))
+            throw new RuntimeException("list has size " + this.size() + " which is not divisible by " + numRows + ".");
+        Lists<Lists<T>> yys = Lists.empty();
+        int count = 0;
+        Lists<T> ys = Lists.empty();
+        for (T t : this.ls) {
+            ys.add(t);
+            count++;
+            if (count >= numRows) {
+                yys.add(ys);
+                ys = Lists.empty();
+                count = 0;
+            }
+        }
+        return yys;
     }
 
     @Override

@@ -84,7 +84,7 @@ public class DataFrame {
                     StringBuilder b = new StringBuilder();
                     lines.drop(1).forEach(b::append);
                     Lists<String> splits = Lists.of(b.toString().split(delimiter));
-                    Lists<Lists<Object>> content = splits.reshape(columnNames.size()).map( lists -> lists.cast(Object.class));
+                    Lists<Lists<Object>> content = splits.reshape(columnNames.size()).map(lists -> lists.cast(Object.class));
                     content.map(os -> os.addAll(columnNames.size() - os.size() > 0 ? Range.of(columnNames.size() - os.size()).ls().map(x -> null) : Lists.empty())); // fill up missing values
                     DataFrame d = DataFrame.fromLists(content).setColumns(columnNames);
                     return d;
@@ -211,6 +211,14 @@ public class DataFrame {
 
     public Selection select(String... columnNames) {
         Selection selection = Selection.of(this, columnNames);
+        this.checkColumnNames(columnNames);
+        return selection;
+    }
+
+    public Selection select(Lists<String> columnNames) {
+        String[] columnNamesArr = new String[columnNames.size()];
+        columnNames.forEachIndexed((idx, s) -> columnNamesArr[idx] = s);
+        Selection selection = Selection.of(this, columnNamesArr);
         this.checkColumnNames(columnNames);
         return selection;
     }

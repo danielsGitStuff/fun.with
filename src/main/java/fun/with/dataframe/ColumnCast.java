@@ -13,7 +13,7 @@ public abstract class ColumnCast implements Function<Object, Object> {
 
     public static class BooleanCast extends ColumnCast {
         private static final Function<String, Boolean> cStr2Bool = s -> {
-            if (s.equals("true") || s.equals("false"))
+            if ("true".equals(s) || "false".equals(s) || s.isEmpty())
                 return Boolean.parseBoolean(s);
             throw new RuntimeException("cannot cast to boolean");
         };

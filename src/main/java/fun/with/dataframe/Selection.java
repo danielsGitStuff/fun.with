@@ -2,6 +2,7 @@ package fun.with.dataframe;
 
 import fun.with.Lists;
 import fun.with.Sets;
+import fun.with.actions.ActionBiPredicate;
 import fun.with.actions.ActionPredicate;
 import fun.with.annotations.Unstable;
 
@@ -54,6 +55,19 @@ public class Selection {
             DFRow row = this.df.t.get(rowIndex);
             Lists<DFValue> selectedRow = columnIndices.map(row::get);
             Boolean keep = predicate.test(selectedRow);
+            if (keep)
+                newSelectedRows.add(rowIndex);
+        }
+        return new Selection(this.df, this.selectedColumnNames, newSelectedRows);
+    }
+
+    public Selection filterIndexed(ActionBiPredicate<Integer, Lists<DFValue>> predicate) {
+        List<Integer> newSelectedRows = new ArrayList<>();
+        Lists<Integer> columnIndices = this.selectedColumnNames.map(c -> this.df.column2index.get(c));
+        for (int rowIndex : this.selectedRows) {
+            DFRow row = this.df.t.get(rowIndex);
+            Lists<DFValue> selectedRow = columnIndices.map(row::get);
+            Boolean keep = predicate.test(rowIndex, selectedRow);
             if (keep)
                 newSelectedRows.add(rowIndex);
         }

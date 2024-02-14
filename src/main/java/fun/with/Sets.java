@@ -3,6 +3,7 @@ package fun.with;
 import fun.with.actions.*;
 import fun.with.interfaces.Associate;
 import fun.with.interfaces.CollectionLike;
+import fun.with.misc.Unique;
 
 import java.util.*;
 
@@ -209,6 +210,16 @@ public class Sets<T> implements CollectionLike<T, Sets<T>>, Associate<T> {
     @Override
     public Sets<T> unique() {
         return this;
+    }
+
+    @Override
+    public <X> Sets<T> uniqueBy(ActionFunction<T, X> f) {
+        return this.uniqueBy(f, null);
+    }
+
+    @Override
+    public <X> Sets<T> uniqueBy(ActionFunction<T, X> f, ActionBiFunction<T, T, T> collisionSelector) {
+        return Unique.uniqueBy(this, Sets::empty, f, collisionSelector);
     }
 
     @Override

@@ -299,4 +299,16 @@ public class ListsTest extends BaseTest {
             ints.forEachIndexed((columnIndex, i) -> assertEquals((rowIndex) * 3 + columnIndex + 1, i));
         });
     }
+
+    @Test
+    void uniqueBy1() {
+        Lists<House> uniques = this.housesWithSameDoors.uniqueBy(house -> house.doors, (house1, house2) -> house1);
+        assertEquals(2, uniques.size());
+        assertEquals(uniques.first(), this.housesWithSameDoors.first());
+        assertEquals(uniques.second(), this.housesWithSameDoors.third());
+        uniques = this.housesWithSameDoors.uniqueBy(house -> house.doors, (house1, house2) -> house2);
+        assertEquals(2, uniques.size());
+        assertEquals(uniques.first(), this.housesWithSameDoors.second());
+        assertEquals(uniques.second(), this.housesWithSameDoors.third());
+    }
 }

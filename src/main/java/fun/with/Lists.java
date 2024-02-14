@@ -3,6 +3,7 @@ package fun.with;
 import fun.with.actions.*;
 import fun.with.interfaces.Associate;
 import fun.with.interfaces.CollectionLike;
+import fun.with.misc.Unique;
 
 import java.util.*;
 import java.util.function.BiConsumer;
@@ -291,6 +292,15 @@ public class Lists<T> implements CollectionLike<T, Lists<T>>, Associate<T> {
         return Lists.from(new LinkedHashSet<>(this.ls));
     }
 
+    @Override
+    public <X> Lists<T> uniqueBy(ActionFunction<T, X> f) {
+        return this.uniqueBy(f, null);
+    }
+    @Override
+    public <X> Lists<T> uniqueBy(ActionFunction<T, X> f, ActionBiFunction<T, T, T> collisionSelector) {
+        return Unique.uniqueBy(this, Lists::empty, f, collisionSelector);
+    }
+
     public UniqueLists<T> toUniqueLists() {
         return UniqueLists.wrap(this.ls);
     }
@@ -346,7 +356,7 @@ public class Lists<T> implements CollectionLike<T, Lists<T>>, Associate<T> {
         return Lists.wrap(ls);
     }
 
-    public Lists<Lists<T>> reshape(Integer numRows){
+    public Lists<Lists<T>> reshape(Integer numRows) {
         if (!(this.size() % numRows == 0))
             throw new RuntimeException("list has size " + this.size() + " which is not divisible by " + numRows + ".");
         Lists<Lists<T>> yys = Lists.empty();
@@ -597,5 +607,18 @@ public class Lists<T> implements CollectionLike<T, Lists<T>>, Associate<T> {
             current = f.apply(current, t);
         }
         return current;
+    }
+
+    /**
+     * Get n random samples from this list.
+     *
+     * @param n
+     * @return
+     */
+    public Lists<T> sample(int n) {
+        if (this.size() < n) throw new RuntimeException("Cannot sample " + n + " times from a list with " + this.size() + " elements");
+        List<T> ls = new ArrayList<>(this.ls);
+        Collections.shuffle(ls);
+        return Lists.wrap(ls).take(n);
     }
 }

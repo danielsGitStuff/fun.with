@@ -1,9 +1,7 @@
 package fun.with.interfaces;
 
 import fun.with.Lists;
-import fun.with.actions.ActionBiConsumer;
-import fun.with.actions.ActionConsumer;
-import fun.with.actions.ActionPredicate;
+import fun.with.actions.*;
 
 import java.util.Collection;
 import java.util.Iterator;
@@ -83,6 +81,11 @@ public interface CollectionLike<T, Re> {
      * @return filtered CollectionLike
      */
     Re unique();
+
+    <X> Re  uniqueBy(ActionFunction<T, X> f);
+
+    <X> Re uniqueBy(ActionFunction<T, X> f, ActionBiFunction<T, T, T> collisionSelector);
+
 
     /**
      * @return whether CollectionLike is empty or not

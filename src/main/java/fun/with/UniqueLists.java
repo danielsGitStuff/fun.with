@@ -4,6 +4,7 @@ import fun.with.actions.*;
 import fun.with.annotations.Unstable;
 import fun.with.interfaces.Associate;
 import fun.with.interfaces.CollectionLike;
+import fun.with.misc.Unique;
 
 import java.util.*;
 
@@ -171,6 +172,16 @@ public class UniqueLists<T> implements CollectionLike<T, UniqueLists<T>>, Associ
     @Override
     public UniqueLists<T> unique() {
         return this;
+    }
+
+    @Override
+    public <X> UniqueLists<T> uniqueBy(ActionFunction<T, X> f) {
+        return this.uniqueBy(f, null);
+    }
+
+    @Override
+    public <X> UniqueLists<T> uniqueBy(ActionFunction<T, X> f, ActionBiFunction<T, T, T> collisionSelector) {
+        return Unique.uniqueBy(this, UniqueLists::empty, f, collisionSelector);
     }
 
     @Override

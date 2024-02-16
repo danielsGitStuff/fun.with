@@ -266,4 +266,17 @@ public class Maps<K, V> {
         this.m.forEach((key, value) -> xm.put(key, f.apply(key, value)));
         return Maps.wrap(xm);
     }
+
+    public Integer deepHash() {
+        int hash = 0;
+        for (K k : this.m.keySet()) {
+            hash += k.hashCode();
+            V v = this.m.get(k);
+            if (v == null)
+                hash++;
+            else
+                hash += v.hashCode();
+        }
+        return hash;
+    }
 }

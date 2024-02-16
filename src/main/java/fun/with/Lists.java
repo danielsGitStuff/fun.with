@@ -119,6 +119,10 @@ public class Lists<T> implements CollectionLike<T, Lists<T>>, Associate<T> {
         return new Lists<>(xs);
     }
 
+    public static <X> Lists<X> wrap(Collection<X> xs) {
+        return Lists.wrap(new ArrayList<>(xs));
+    }
+
     /**
      * Creates a new list with everything in xs. No reference to xs is kept.
      *
@@ -296,6 +300,7 @@ public class Lists<T> implements CollectionLike<T, Lists<T>>, Associate<T> {
     public <X> Lists<T> uniqueBy(ActionFunction<T, X> f) {
         return this.uniqueBy(f, null);
     }
+
     @Override
     public <X> Lists<T> uniqueBy(ActionFunction<T, X> f, ActionBiFunction<T, T, T> collisionSelector) {
         return Unique.uniqueBy(this, Lists::empty, f, collisionSelector);
@@ -620,5 +625,13 @@ public class Lists<T> implements CollectionLike<T, Lists<T>>, Associate<T> {
         List<T> ls = new ArrayList<>(this.ls);
         Collections.shuffle(ls);
         return Lists.wrap(ls).take(n);
+    }
+
+    public Double sum(ActionFunction<T, Double> f) {
+        Double sum = 0.0;
+        for (T t : this.ls) {
+            sum += f.apply(t);
+        }
+        return sum;
     }
 }

@@ -3,6 +3,7 @@ package fun.with;
 import fun.with.actions.ActionBiConsumer;
 import fun.with.actions.ActionBiFunction;
 import fun.with.actions.ActionTriConsumer;
+import fun.with.annotations.Unstable;
 
 import java.util.*;
 import java.util.function.BiFunction;
@@ -266,7 +267,7 @@ public class Maps<K, V> {
         this.m.forEach((key, value) -> xm.put(key, f.apply(key, value)));
         return Maps.wrap(xm);
     }
-
+    @Unstable(reason = "does not keep track of already visited elements, might cause infinite loops if there is a reference to the map in the map itself.")
     public Integer deepHash() {
         int hash = 0;
         for (K k : this.m.keySet()) {

@@ -267,16 +267,31 @@ public class Maps<K, V> {
         this.m.forEach((key, value) -> xm.put(key, f.apply(key, value)));
         return Maps.wrap(xm);
     }
-    @Unstable(reason = "does not keep track of already visited elements, might cause infinite loops if there is a reference to the map in the map itself.")
+
     public Integer deepHash() {
+        return this.deepHash(new HashSet<>());
+    }
+
+    private Integer deepHash(Set<Object> visited) {
         int hash = 0;
         for (K k : this.m.keySet()) {
-            hash += k.hashCode();
+            if (!visited.contains(k)) {
+                if (k instanceof Maps<?, ?>)
+                    hash += ((Maps<?, ?>) k).deepHash(visited);
+                else
+                    hash += k.hashCode();
+            }
             V v = this.m.get(k);
             if (v == null)
                 hash++;
-            else
-                hash += v.hashCode();
+            else {
+                if (!visited.contains(v)) {
+                    if (v instanceof Maps<?, ?>)
+                        hash += ((Maps<?, ?>) v).deepHash(visited);
+                    else
+                        hash += v.hashCode();
+                }
+            }
         }
         return hash;
     }

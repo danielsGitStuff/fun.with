@@ -3,6 +3,7 @@ package fun.with.dataframe;
 import fun.with.*;
 import fun.with.annotations.Unstable;
 import fun.with.interfaces.CollectionLike;
+import fun.with.misc.TextReader;
 import fun.with.unstable.Try;
 
 import java.io.File;
@@ -78,13 +79,10 @@ public class DataFrame {
     }
 
     public static DataFrame fromCsv2(File csvFile, String delimiter) {
-        DataFrame df = Try.with(() -> Files.readAllLines(csvFile.toPath())).function(strings -> {
-                    Lists<String> lines = Lists.wrap(strings);
+        DataFrame df = Try.with(() -> TextReader.read(csvFile)).function(lines -> {
                     Lists<String> columnNames = Lists.of(lines.first().split(delimiter));
-                    StringBuilder b = new StringBuilder();
-                    lines.drop(1).forEach(b::append);
-                    Lists<String> splits = Lists.of(b.toString().split(delimiter));
-                    Lists<Lists<Object>> content = splits.reshape(columnNames.size()).map(lists -> lists.cast(Object.class));
+                    Lists<String> body = lines.drop(1);
+                    Lists<Lists<Object>> content = body.map(s -> Lists.of(s.split(delimiter)).cast(Object.class));
                     content.map(os -> os.addAll(columnNames.size() - os.size() > 0 ? Range.of(columnNames.size() - os.size()).ls().map(x -> null) : Lists.empty())); // fill up missing values
                     DataFrame d = DataFrame.fromLists(content).setColumns(columnNames);
                     return d;
@@ -346,5 +344,19 @@ public class DataFrame {
         return this.t.map(row -> row.get(idx));
     }
 
+    public List<ColumnCast> getColumnCasts() {
+        return columnCasts;
+    }
 
+    public DataFrame setColumnCasts(List<ColumnCast> columnCasts) {
+        this.columnCasts = columnCasts;
+        return this;
+    }
+
+    public DataFrame takeRows(int n) {
+        Lists<Lists<Object>> t = this.getRows().take(n).map(dfRow -> dfRow.getValues().map(DFValue::getObject));
+        return DataFrame.fromLists(t) //
+                .setColumns(this.getColumns()) //
+                .setColumnCasts(this.getColumnCasts());
+    }
 }

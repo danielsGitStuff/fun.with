@@ -11,8 +11,8 @@ public class Pair<K, V> {
         this.v = v;
     }
 
-    public ChainablePair<K,V> and(K k, V v) {
-        ChainablePair<K,V> chainablePair = new ChainablePair<>();
+    public ChainablePair<K, V> and(K k, V v) {
+        ChainablePair<K, V> chainablePair = new ChainablePair<>();
         chainablePair.add(this);
         chainablePair.add(Pair.of(k, v));
         return chainablePair;
@@ -55,5 +55,14 @@ public class Pair<K, V> {
     @Override
     public int hashCode() {
         return Objects.hash(k, v);
+    }
+
+    public <X, Y> Pair<X, Y> cast(Class<X> xClass, Class<Y> yClass) {
+        return Pair.of((X) this.k, (Y) this.v);
+    }
+
+    public Maps<K, V> toMaps() {
+        Maps<K, V> empty = Maps.empty();
+        return empty.put(this.k, this.v);
     }
 }

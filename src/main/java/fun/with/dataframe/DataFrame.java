@@ -10,6 +10,7 @@ import java.io.File;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 @Unstable
 public class DataFrame {
@@ -358,5 +359,16 @@ public class DataFrame {
         return DataFrame.fromLists(t) //
                 .setColumns(this.getColumns()) //
                 .setColumnCasts(this.getColumnCasts());
+    }
+
+    public DataFrame addColumn(String columnName) {
+        return this.addColumn(columnName, null);
+    }
+    public DataFrame addColumn(String columnName, Object value) {
+        Lists<Lists<Object>> t = this.getRows().map(dfRow -> dfRow.getValues().map(DFValue::getObject));
+        Lists<String> columns = this.getColumns().add(columnName);
+        t.forEach(row -> row.add(value));
+        DataFrame df = DataFrame.fromLists(t).setColumns(columns);
+        return df;
     }
 }

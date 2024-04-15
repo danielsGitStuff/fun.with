@@ -1,7 +1,7 @@
 package fun.with.unstable;
 
-import fun.with.interfaces.TryWithConsumer;
-import fun.with.interfaces.TryWithFunction;
+import fun.with.actions.ActionConsumer;
+import fun.with.actions.ActionFunction;
 
 import java.io.FileInputStream;
 
@@ -18,29 +18,31 @@ public class TryWithClosable<T extends AutoCloseable> {
         System.out.println(read);
     }
 
-    public <X> X function(TryWithFunction<T, X> f) {
+    public <X> X function(ActionFunction<T, X> f) {
         try {
-            return f.run(this.autoClosable);
+            return f.apply(this.autoClosable);
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            e.printStackTrace();
+            throw e;
         } finally {
             Try.ignorant(this.autoClosable::close);
         }
     }
 
-    public void consume(TryWithConsumer<T> f) {
+    public void consume(ActionConsumer<T> f) {
         try {
-            f.consume(this.autoClosable);
+            f.accept(this.autoClosable);
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            e.printStackTrace();
+            throw e;
         } finally {
             Try.ignorant(this.autoClosable::close);
         }
     }
 
-    public <X> X defaultOrFunction(X defaultX, TryWithFunction<T, X> f) {
+    public <X> X defaultOrFunction(X defaultX, ActionFunction<T, X> f) {
         try {
-            return f.run(this.autoClosable);
+            return f.apply(this.autoClosable);
         } catch (Exception e) {
             e.printStackTrace();
             return defaultX;

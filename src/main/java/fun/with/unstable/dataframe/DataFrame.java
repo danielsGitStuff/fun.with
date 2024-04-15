@@ -1,8 +1,11 @@
-package fun.with.dataframe;
+package fun.with.unstable.dataframe;
 
 import fun.with.*;
 import fun.with.annotations.Unstable;
 import fun.with.interfaces.CollectionLike;
+import fun.with.misc.Pair;
+import fun.with.misc.Range;
+import fun.with.misc.Strings;
 import fun.with.misc.TextReader;
 import fun.with.unstable.Try;
 
@@ -10,7 +13,6 @@ import java.io.File;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 @Unstable
 public class DataFrame {
@@ -57,7 +59,10 @@ public class DataFrame {
     }
 
     private void initColumns() {
-        this.columns = Range.of(this.rowSize).ls().map(i -> "Column" + i);
+        if (this.rowSize > 0)
+            this.columns = Range.of(this.rowSize).ls().map(i -> "Column" + i);
+        else
+            this.columns = Lists.empty();
         this.column2index = this.columns.associateIndexed((idx, c) -> Pair.of(c, idx));
     }
 
@@ -122,6 +127,8 @@ public class DataFrame {
      */
     private static Lists<DFRow> transpose(Lists<DFRow> t) {
         Integer rowSize = DataFrame.checkTable(t);
+        if (t.isEmpty())
+            return Lists.empty();
         Lists<DFRow> columnWise = Range.of(rowSize).ls().map(integer -> new DFRow());
         for (int columnIndex = 0; columnIndex < rowSize; columnIndex++) {
             for (int rowIndex = 0; rowIndex < t.size(); rowIndex++) {
@@ -142,6 +149,8 @@ public class DataFrame {
      * @return
      */
     private static Integer checkTable(Lists<DFRow> t) {
+        if (t.isEmpty())
+            return 0;
         Sets<Integer> differentRowLengths = t.map(DFRow::size).sets();
         if (differentRowLengths.size() > 1) {
             throw new RuntimeException("All rows have to have the same length.");
@@ -158,6 +167,19 @@ public class DataFrame {
      * @return
      */
     public DataFrame setColumns(Lists<String> columns) {
+        Maps<String, Integer> columnNameCounts = columns.associate(s -> Pair.of(s, 0));
+        columns = columns.map(originalName -> {
+            String c = originalName;
+            int count = columnNameCounts.get(originalName);
+            if (count > 0) {
+                String newColumnName = originalName + "_" + count;
+                System.out.println("Duplicate column name. Will rename '" + originalName + "' to '" + newColumnName + "'.");
+                c = newColumnName;
+            }
+            count++;
+            columnNameCounts.put(originalName, count);
+            return c;
+        });
         this.columns = columns;
         this.column2index = this.columns.associateIndexed((integer, s) -> Pair.of(s, integer));
         return this;
@@ -211,6 +233,11 @@ public class DataFrame {
     public Selection select(String... columnNames) {
         Selection selection = Selection.of(this, columnNames);
         this.checkColumnNames(columnNames);
+        return selection;
+    }
+
+    public Selection select() {
+        Selection selection = Selection.of(this, this.columns.mapIndexed((integer, s) -> integer));
         return selection;
     }
 
@@ -282,10 +309,11 @@ public class DataFrame {
 
     public DataFrame printAll(String title) {
 
-        Maps<String, Integer> col2LengthMap = this.columns.associate(c -> Pair.of(c, Ints.max(this.getColumn(c).map(o -> o.toString().length()))));
-        Lists<String> filledColumns = this.columns.map(c -> DataFrame.fillStr(c, col2LengthMap.get(c)));
-        DataFrame df = new DataFrame(this.t, this.indices).setColumns(filledColumns);
-        df.print(title, null);
+//        Maps<String, Integer> col2LengthMap = this.columns.associate(c -> Pair.of(c, Ints.max(this.getColumn(c).map(o -> o.toString().length()))));
+//        Lists<String> filledColumns = this.columns.map(c -> DataFrame.fillStr(c, col2LengthMap.get(c)));
+//        DataFrame df = new DataFrame(this.t, this.indices).setColumns(filledColumns);
+//        df.print(title, null);
+        this.print(title, null);
         return this;
     }
 
@@ -294,8 +322,16 @@ public class DataFrame {
     }
 
     public DataFrame print(String title, Integer noOfRows) {
-        Lists<Integer> columnCharCount = this.columns.map(String::length);
-        String join = "| " + this.columns.map(c -> c + " | ").join("");
+//        Lists<String> columns = this.columns.map(c -> Strings.rightPad(c, 5, " "));
+        Lists<String> columns = this.columns.mapIndexed((idx, columnName) -> {
+            Lists<DFValue> columnValues = this.getColumn(idx);
+            Lists<Integer> maxColumnSizes = columnValues.filter(dfValue -> !dfValue.isNull()).map(dfValue -> dfValue.toString().length()).sort(Integer::compareTo);
+            int maxLength = maxColumnSizes.isEmpty() ? 0 : maxColumnSizes.last();
+            int padding = Math.max(5, maxLength);
+            return Strings.rightPad(columnName, padding, " ");
+        });
+        Lists<Integer> columnCharCount = columns.map(String::length);
+        String join = "| " + columns.map(c -> c + " | ").join("");
         final String bars = Lists.of("-").repeat(join.length()).join("");
         if (title != null) {
             System.out.println(bars);
@@ -341,7 +377,7 @@ public class DataFrame {
         return this.t.map(row -> row.get(idx));
     }
 
-    public Lists<Object> getColumn(Integer idx) {
+    public Lists<DFValue> getColumn(Integer idx) {
         return this.t.map(row -> row.get(idx));
     }
 
@@ -364,6 +400,7 @@ public class DataFrame {
     public DataFrame addColumn(String columnName) {
         return this.addColumn(columnName, null);
     }
+
     public DataFrame addColumn(String columnName, Object value) {
         Lists<Lists<Object>> t = this.getRows().map(dfRow -> dfRow.getValues().map(DFValue::getObject));
         Lists<String> columns = this.getColumns().add(columnName);

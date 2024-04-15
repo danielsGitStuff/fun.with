@@ -1,7 +1,8 @@
 package fun.with.dataframe;
 
 import fun.with.Lists;
-import fun.with.Range;
+import fun.with.misc.Range;
+import fun.with.unstable.dataframe.DataFrame;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 

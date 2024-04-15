@@ -3,6 +3,7 @@ package fun.with;
 import fun.with.actions.*;
 import fun.with.interfaces.Associate;
 import fun.with.interfaces.CollectionLike;
+import fun.with.misc.Pair;
 import fun.with.misc.Unique;
 
 import java.util.*;
@@ -532,10 +533,16 @@ public class Lists<T> implements CollectionLike<T, Lists<T>>, Associate<T> {
     }
 
     public T first() {
+        if (this.isEmpty()) {
+            throw new RuntimeException("Cannot call first() on an empty List.");
+        }
         return this.ls.get(0);
     }
 
     public T last() {
+        if (this.isEmpty()) {
+            throw new RuntimeException("Cannot call last() on an empty List.");
+        }
         return this.ls.get(this.size() - 1);
     }
 
@@ -583,10 +590,16 @@ public class Lists<T> implements CollectionLike<T, Lists<T>>, Associate<T> {
     }
 
     public T second() {
+        if (this.size() < 2) {
+            throw new RuntimeException("Cannot call second() on a List of size " + this.size() + ".");
+        }
         return this.ls.get(1);
     }
 
     public T third() {
+        if (this.size() < 3) {
+            throw new RuntimeException("Cannot call second() on a List of size " + this.size() + ".");
+        }
         return this.ls.get(2);
     }
 
@@ -633,5 +646,27 @@ public class Lists<T> implements CollectionLike<T, Lists<T>>, Associate<T> {
             sum += f.apply(t);
         }
         return sum;
+    }
+
+    /**
+     * removes last element
+     *
+     * @return the element that was just removed
+     */
+    public T pop() {
+        if (this.isEmpty())
+            throw new RuntimeException("cannot pop an empty list.");
+        return this.ls.remove(this.size() - 1);
+    }
+
+    /**
+     * removes first element
+     *
+     * @return the element that was just removed
+     */
+    public T popFirst() {
+        if (this.isEmpty())
+            throw new RuntimeException("cannot pop an empty list.");
+        return this.ls.remove(0);
     }
 }

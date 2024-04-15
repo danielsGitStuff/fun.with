@@ -5,7 +5,7 @@ import fun.with.Lists;
 import static org.junit.jupiter.api.Assertions.*;
 
 import fun.with.Maps;
-import fun.with.Pair;
+import fun.with.misc.Pair;
 import fun.with.lists.classes.BaseTest;
 import fun.with.lists.classes.House;
 import org.junit.jupiter.api.Test;

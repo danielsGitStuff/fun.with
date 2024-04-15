@@ -3,7 +3,7 @@ package fun.with;
 import fun.with.actions.ActionBiConsumer;
 import fun.with.actions.ActionBiFunction;
 import fun.with.actions.ActionTriConsumer;
-import fun.with.annotations.Unstable;
+import fun.with.misc.Pair;
 
 import java.util.*;
 import java.util.function.BiFunction;
@@ -136,7 +136,7 @@ public class Maps<K, V> {
         final int lastIndex = this.m.size() - 1;
         int index = 0;
         for (Map.Entry<K, V> e : this.m.entrySet()) {
-            b.append(e.getKey()).append("=>").append(e.getValue());
+            b.append(e.getKey()).append("->").append(e.getValue());
             if (index != lastIndex)
                 b.append(",");
             index++;

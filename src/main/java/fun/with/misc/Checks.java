@@ -1,4 +1,4 @@
-package fun.with;
+package fun.with.misc;
 
 public class Checks {
     public interface ICheck {
@@ -12,15 +12,13 @@ public class Checks {
      * @param test
      */
     public static void check(String failureMessage, ICheck test) {
-        boolean finished = false;
-        boolean success = false;
+        boolean success;
         try {
             success = test.test();
-            finished = true;
         } catch (Exception e) {
             System.err.println("Check failed: " + failureMessage);
             throw new RuntimeException(e);
         }
-        if (finished && !success) throw new RuntimeException("test returned false: " + failureMessage);
+        if (!success) throw new RuntimeException("test returned false: " + failureMessage);
     }
 }

@@ -1,7 +1,7 @@
 package fun.with.lists;
 
 import fun.with.Lists;
-import fun.with.Range;
+import fun.with.misc.Range;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 

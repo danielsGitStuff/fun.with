@@ -3,6 +3,8 @@ package fun.with.lists;
 import fun.with.*;
 import fun.with.lists.classes.BaseTest;
 import fun.with.lists.classes.House;
+import fun.with.misc.Pair;
+import fun.with.misc.Range;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -244,21 +246,22 @@ public class ListsTest extends BaseTest {
     }
 
     @Test
-    void groupBy() {
-        Lists<House> houses = this.houses.copy().add(new House(2, 9));
-        Maps<Integer, Lists<Integer>> windowsGroupedByDoors = houses.groupBy(h -> h.doors, house -> house.windows);
-        assertEquals(3, windowsGroupedByDoors.size());
-        assertEquals(1, windowsGroupedByDoors.get(3).size());
-        assertEquals(1, windowsGroupedByDoors.get(4).size());
+    void groupBy1() {
+        Maps<Integer, Lists<House>> doors2house = this.houses.copy().add(new House(2, 9)).groupBy(house -> house.doors);
+        assertEquals(3, doors2house.size());
+        assertEquals(1, doors2house.get(3).size());
+        assertEquals(1, doors2house.get(4).size());
+        System.out.println(doors2house);
     }
 
     @Test
-    void testGroupBy() {
+    void groupBy2() {
         Lists<House> houses = this.houses.copy().add(new House(2, 9));
-        Maps<Integer, Lists<House>> groupedByDoors = houses.groupBy(h -> h.doors);
-        assertEquals(3, groupedByDoors.size());
-        assertEquals(1, groupedByDoors.get(3).size());
-        assertEquals(1, groupedByDoors.get(4).size());
+        Maps<Integer, Lists<Integer>> doors2windows = this.houses.copy().add(new House(2, 9)).groupBy(h -> h.doors, house -> house.windows);
+        assertEquals(3, doors2windows.size());
+        assertEquals(1, doors2windows.get(3).size());
+        assertEquals(1, doors2windows.get(4).size());
+        System.out.println(doors2windows);
     }
 
     @Test
@@ -291,7 +294,7 @@ public class ListsTest extends BaseTest {
     }
 
     @Test
-    void view(){
+    void view() {
         Lists<Integer> xs = Range.of(1, 10).ls();
         Lists<Lists<Integer>> ys = xs.reshape(3);
         assertEquals(3, ys.size());
@@ -310,5 +313,29 @@ public class ListsTest extends BaseTest {
         assertEquals(2, uniques.size());
         assertEquals(uniques.first(), this.housesWithSameDoors.second());
         assertEquals(uniques.second(), this.housesWithSameDoors.third());
+    }
+
+    @Test
+    void associateBy() {
+        Maps<Integer, House> windows2house = this.houses.associateBy(house -> house.windows);
+        assertEquals(3, windows2house.size());
+        assertTrue(windows2house.containsKey(4));
+        assertTrue(windows2house.containsKey(5));
+        assertTrue(windows2house.containsKey(6));
+        assertEquals(windows2house.get(4), this.houses.first());
+        assertEquals(windows2house.get(5), this.houses.second());
+        assertEquals(windows2house.get(6), this.houses.third());
+        System.out.println(windows2house);
+    }
+
+    @Test
+    void associateWith() {
+        System.out.println(this.houses);
+        Maps<House, Integer> house2windows = this.houses.associateWith(house -> house.windows);
+        assertEquals(3, house2windows.size());
+        assertEquals(this.houses.first().windows, house2windows.get(this.houses.first()));
+        assertEquals(this.houses.second().windows, house2windows.get(this.houses.second()));
+        assertEquals(this.houses.third().windows, house2windows.get(this.houses.third()));
+        System.out.println(house2windows);
     }
 }

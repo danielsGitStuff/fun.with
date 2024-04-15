@@ -92,6 +92,10 @@ public interface CollectionLike<T, Re> {
      */
     boolean isEmpty();
 
+    default boolean notEmpty(){
+        return !this.isEmpty();
+    }
+
     /**
      * return an iterator
      *

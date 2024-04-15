@@ -1,4 +1,4 @@
-package fun.with;
+package fun.with.unstable;
 
 import fun.with.actions.ActionRunnable;
 

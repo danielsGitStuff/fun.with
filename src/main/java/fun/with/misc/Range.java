@@ -1,5 +1,7 @@
-package fun.with;
+package fun.with.misc;
 
+import fun.with.Lists;
+import fun.with.NumberCasting;
 import fun.with.util.RangeIterator;
 
 import java.util.Iterator;

@@ -3,6 +3,7 @@ package fun.with;
 import fun.with.actions.*;
 import fun.with.interfaces.Associate;
 import fun.with.interfaces.CollectionLike;
+import fun.with.misc.Pair;
 import fun.with.misc.Unique;
 
 import java.util.*;
@@ -321,6 +322,11 @@ public class Sets<T> implements CollectionLike<T, Sets<T>>, Associate<T> {
 
     public Sets<T> clear() {
         this.set.clear();
+        return this;
+    }
+
+    public Sets<T> remove(T t) {
+        this.set.remove(t);
         return this;
     }
 }

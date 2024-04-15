@@ -1,4 +1,6 @@
-package fun.with;
+package fun.with.misc;
+
+import fun.with.Lists;
 
 public class Strings {
 
@@ -18,6 +20,23 @@ public class Strings {
 
     public Strings(String s) {
         this.s = s;
+    }
+
+    /**
+     * Add right padding to String if it is shorter than stringLength.
+     *
+     * @param s                String to pad
+     * @param stringLength     length to which s will be padded.
+     * @param paddingCharacter must have length of 1.
+     * @return right padded String.
+     */
+    public static String rightPad(String s, int stringLength, String paddingCharacter) {
+        if (s.length() >= stringLength)
+            return s;
+        if (paddingCharacter.length() != 1)
+            throw new RuntimeException("Padding string must have length 1. It was " + paddingCharacter.length());
+        int missing = stringLength - s.length();
+        return s + Lists.of(paddingCharacter).repeat(missing).join("");
     }
 
     public String get() {

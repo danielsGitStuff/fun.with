@@ -1,4 +1,4 @@
-package fun.with.dataframe;
+package fun.with.unstable.dataframe;
 
 import fun.with.Lists;
 import fun.with.Sets;
@@ -84,12 +84,17 @@ public class Selection {
         Lists<DFRow> t = Lists.empty();
         List<Integer> indices = new ArrayList<>();
         int idx = 0;
+        Lists<Integer> selectedColumnIndices = this.selectedColumnNames.map(c -> this.df.column2index.get(c));
+        Sets<String> selectedNoNumberColumns = this.selectedColumnNames.filter(c -> this.df.getNoNumberColumns().contains(c)).sets();
         for (int rowIndex : this.selectedRows) {
             DFRow row = this.df.t.get(rowIndex);
-            t.add(row);
+            Lists<Object> selectedValues = selectedColumnIndices.map(columnIdx -> row.get(columnIdx).getObject());
+            t.add(new DFRow().setValues(selectedValues));
             indices.add(idx++);
         }
-        return new DataFrame(t, indices).setColumns(this.df.columns).setNoNumberColumns(this.df.getNoNumberColumns());
+        DataFrame df = new DataFrame(t, indices).setColumns(selectedColumnNames).setNoNumberColumns(selectedNoNumberColumns);
+        t.forEach(dfRow -> dfRow.setDf(df));
+        return df;
     }
 
     public Selection unique() {

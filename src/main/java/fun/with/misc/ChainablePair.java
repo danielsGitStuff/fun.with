@@ -1,4 +1,7 @@
-package fun.with;
+package fun.with.misc;
+
+import fun.with.Lists;
+import fun.with.Maps;
 
 public class ChainablePair<K, V> {
 

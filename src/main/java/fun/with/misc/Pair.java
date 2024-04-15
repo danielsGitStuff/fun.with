@@ -1,4 +1,6 @@
-package fun.with;
+package fun.with.misc;
+
+import fun.with.Maps;
 
 import java.util.Objects;
 

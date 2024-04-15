@@ -1,31 +1,25 @@
 package fun.with.unstable;
 
+import fun.with.actions.ActionRunnable;
+import fun.with.actions.ActionSupplier;
 import fun.with.annotations.Unstable;
-import fun.with.interfaces.TryRunnable;
-import fun.with.interfaces.TryWithSupplier;
-import fun.with.unstable.TryWith;
-import fun.with.unstable.TryWithClosable;
 
 @Unstable(reason = "not sure it handles that well")
 public class Try {
 
-    public static <X extends AutoCloseable> TryWithClosable<X> withClosable(TryWithSupplier<X> supplier) {
+    public static <X extends AutoCloseable> TryWithClosable<X> withClosable(ActionSupplier<X> supplier) {
         try {
-            return new TryWithClosable<>(supplier.supply());
+            return new TryWithClosable<>(supplier.get());
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
 
-    public static <X> TryWith<X> with(TryWithSupplier<X> supplier) {
-        try {
-            return new TryWith<>(supplier.supply());
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+    public static <X> TryWith<X> with(ActionSupplier<X> supplier) {
+        return new TryWith<>(Try.supply(supplier));
     }
 
-    public static void run(TryRunnable runnable) {
+    public static void run(ActionRunnable runnable) {
         try {
             runnable.run();
         } catch (Exception e) {
@@ -33,24 +27,20 @@ public class Try {
         }
     }
 
-    public static <X> X supply(TryWithSupplier<X> supplier) {
-        try {
-            return supplier.supply();
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+    public static <X> X supply(ActionSupplier<X> supplier) {
+        return supplier.get();
     }
 
-    public static <X> X defaultOrSupply(X defaultX, TryWithSupplier<X> supplier) {
+    public static <X> X defaultOrSupply(X defaultX, ActionSupplier<X> supplier) {
         try {
-            return supplier.supply();
+            return supplier.get();
         } catch (Exception e) {
             e.printStackTrace();
             return defaultX;
         }
     }
 
-    public static void ignorant(TryRunnable runnable) {
+    public static void ignorant(ActionRunnable runnable) {
         try {
             runnable.run();
         } catch (Exception e) {

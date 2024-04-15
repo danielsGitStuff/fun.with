@@ -1,4 +1,4 @@
-package fun.with.interfaces;
+package fun.with.unstable;
 
 import fun.with.annotations.Unstable;
 

@@ -1,8 +1,8 @@
-package fun.with.dataframe;
+package fun.with.unstable.dataframe;
 
 import fun.with.Lists;
 import fun.with.Maps;
-import fun.with.Pair;
+import fun.with.misc.Pair;
 import fun.with.Sets;
 import fun.with.annotations.Unstable;
 

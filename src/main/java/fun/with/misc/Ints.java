@@ -1,22 +1,22 @@
-package fun.with;
+package fun.with.misc;
 
 import fun.with.interfaces.CollectionLike;
 
-public class Longs {
-    private Long i;
+public class Ints {
+    private Integer i;
     private String format;
 
-    public Longs(String s) {
-        this.i = Long.parseLong(s);
+    public Ints(String s) {
+        this.i = Integer.parseInt(s);
     }
 
-    public Longs(Long i) {
+    public Ints(int i) {
         this.i = i;
     }
 
-    public static Long max(CollectionLike<Long, ?> longs) {
-        Long max = null;
-        for (Long i : longs.getCollection()) {
+    public static Integer max(CollectionLike<Integer, ?> ints) {
+        Integer max = null;
+        for (Integer i : ints.getCollection()) {
             if (max == null)
                 max = i;
             else {
@@ -26,35 +26,35 @@ public class Longs {
         return max;
     }
 
-    public static Longs of(String s) {
-        return new Longs(s);
+    public static Ints of(String s) {
+        return new Ints(s);
     }
 
-    public static Longs of(Long i) {
-        return new Longs(i);
+    public static Ints of(int i) {
+        return new Ints(i);
     }
 
-    public Longs inc() {
+    public Ints inc() {
         this.i++;
         return this;
     }
 
-    public Longs add(Long i) {
+    public Ints add(Integer i) {
         this.i += i;
         return this;
     }
 
-    public Longs subtract(Long i) {
+    public Ints subtract(Integer i) {
         this.i -= i;
         return this;
     }
 
-    public Longs multiply(Long i) {
+    public Ints multiply(Integer i) {
         this.i *= i;
         return this;
     }
 
-    public Longs divide(Long i) {
+    public Ints divide(Integer i) {
         this.i /= i;
         return this;
     }
@@ -66,7 +66,7 @@ public class Longs {
         return String.format(this.format, i);
     }
 
-    public Longs format(String format) {
+    public Ints format(String format) {
         this.format = format;
         return this;
     }

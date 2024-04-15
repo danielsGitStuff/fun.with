@@ -1,6 +1,4 @@
-package fun.with.dataframe;
-
-import fun.with.misc.NumberTransformer;
+package fun.with.unstable.dataframe;
 
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;

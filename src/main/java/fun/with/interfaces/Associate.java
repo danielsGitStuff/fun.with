@@ -2,12 +2,11 @@ package fun.with.interfaces;
 
 import fun.with.Lists;
 import fun.with.Maps;
-import fun.with.Pair;
+import fun.with.misc.Pair;
 import fun.with.actions.ActionBiFunction;
 import fun.with.actions.ActionFunction;
 
 import java.util.Map;
-import java.util.function.Function;
 
 public interface Associate<T> {
 

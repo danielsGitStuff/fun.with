@@ -1,7 +1,7 @@
 package fun.with.util;
 
 import fun.with.NumberCasting;
-import fun.with.Range;
+import fun.with.misc.Range;
 
 import java.util.Iterator;
 

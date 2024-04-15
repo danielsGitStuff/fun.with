@@ -38,7 +38,7 @@ Lists<House> houses = Lists.of(new House(2, 4), new House(3, 5), new House(4, 6)
 
 - group by
 - ```java
-       Maps<Integer, Lists<House>> doors2house = this.houses.copy().add(new House(2, 9)).groupBy(house -> house.doors);
+   Maps<Integer, Lists<House>> doors2house = this.houses.copy().add(new House(2, 9)).groupBy(house -> house.doors);
   // => M(3){2->l(2)[House{doors=2, windows=4},House{doors=2, windows=9}],3->l(1)[House{doors=3, windows=5}],4->l(1)[House{doors=4, windows=6}]}
   ```
   

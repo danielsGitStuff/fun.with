@@ -11,6 +11,8 @@ import java.util.function.Predicate;
 
 public interface CollectionLike<T, Re> {
 
+    <R> Lists<R> flatMap(ActionFunction<T, Lists<R>> f);
+
     /**
      * ForEach
      *

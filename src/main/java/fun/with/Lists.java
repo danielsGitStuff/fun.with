@@ -3,6 +3,7 @@ package fun.with;
 import fun.with.actions.*;
 import fun.with.interfaces.Associate;
 import fun.with.interfaces.CollectionLike;
+import fun.with.misc.Checks;
 import fun.with.misc.Pair;
 import fun.with.misc.Unique;
 
@@ -176,7 +177,7 @@ public class Lists<T> implements CollectionLike<T, Lists<T>>, Associate<T> {
         }
         return ls;
     }
-
+    @Override
     public <R> Lists<R> flatMap(ActionFunction<T, Lists<R>> f) {
         Lists<R> ls = Lists.empty();
         for (T t : this.ls) {
@@ -363,8 +364,7 @@ public class Lists<T> implements CollectionLike<T, Lists<T>>, Associate<T> {
     }
 
     public Lists<Lists<T>> reshape(Integer numRows) {
-        if (!(this.size() % numRows == 0))
-            throw new RuntimeException("list has size " + this.size() + " which is not divisible by " + numRows + ".");
+        Checks.check("list has size " + this.size() + " which is not divisible by " + numRows + ".", () -> (this.size() % numRows) == 0);
         Lists<Lists<T>> yys = Lists.empty();
         int count = 0;
         Lists<T> ys = Lists.empty();
@@ -533,16 +533,12 @@ public class Lists<T> implements CollectionLike<T, Lists<T>>, Associate<T> {
     }
 
     public T first() {
-        if (this.isEmpty()) {
-            throw new RuntimeException("Cannot call first() on an empty List.");
-        }
+        Checks.check("Cannot call first() on an empty List.", () -> !this.isEmpty());
         return this.ls.get(0);
     }
 
     public T last() {
-        if (this.isEmpty()) {
-            throw new RuntimeException("Cannot call last() on an empty List.");
-        }
+        Checks.check("Cannot call last() on an empty List.", () -> !this.isEmpty());
         return this.ls.get(this.size() - 1);
     }
 
@@ -619,6 +615,15 @@ public class Lists<T> implements CollectionLike<T, Lists<T>>, Associate<T> {
         return Lists.wrap(ys);
     }
 
+    /**
+     * Applies f(x, t) for each t in this list in order.
+     * To be more specific: this returns f(f(x, t[0]), t[1], ...)
+     *
+     * @param x   object to modify.
+     * @param f   modifying function.
+     * @param <X>
+     * @return f(f ( x, t[0]), t[1], ...) for all t in this list.
+     */
     public <X> X applyTo(X x, ActionBiFunction<X, T, X> f) {
         X current = x;
         for (T t : this.ls) {
@@ -634,18 +639,10 @@ public class Lists<T> implements CollectionLike<T, Lists<T>>, Associate<T> {
      * @return
      */
     public Lists<T> sample(int n) {
-        if (this.size() < n) throw new RuntimeException("Cannot sample " + n + " times from a list with " + this.size() + " elements");
+        Checks.check("Cannot sample " + n + " times from a list with " + this.size() + " elements", () -> this.size() >= n);
         List<T> ls = new ArrayList<>(this.ls);
         Collections.shuffle(ls);
         return Lists.wrap(ls).take(n);
-    }
-
-    public Double sum(ActionFunction<T, Double> f) {
-        Double sum = 0.0;
-        for (T t : this.ls) {
-            sum += f.apply(t);
-        }
-        return sum;
     }
 
     /**
@@ -654,8 +651,7 @@ public class Lists<T> implements CollectionLike<T, Lists<T>>, Associate<T> {
      * @return the element that was just removed
      */
     public T pop() {
-        if (this.isEmpty())
-            throw new RuntimeException("cannot pop an empty list.");
+        Checks.check("Cannot pop an empty list.", () -> !this.isEmpty());
         return this.ls.remove(this.size() - 1);
     }
 
@@ -665,8 +661,7 @@ public class Lists<T> implements CollectionLike<T, Lists<T>>, Associate<T> {
      * @return the element that was just removed
      */
     public T popFirst() {
-        if (this.isEmpty())
-            throw new RuntimeException("cannot pop an empty list.");
+        Checks.check("Cannot pop an empty list.", () -> !this.isEmpty());
         return this.ls.remove(0);
     }
 }

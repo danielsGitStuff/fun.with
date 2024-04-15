@@ -329,4 +329,13 @@ public class Sets<T> implements CollectionLike<T, Sets<T>>, Associate<T> {
         this.set.remove(t);
         return this;
     }
+
+    @Override
+    public <R> Lists<R> flatMap(ActionFunction<T, Lists<R>> f) {
+        Lists<R> ls = Lists.empty();
+        for (T t : this.set) {
+            ls.addAll(f.apply(t));
+        }
+        return ls;
+    }
 }

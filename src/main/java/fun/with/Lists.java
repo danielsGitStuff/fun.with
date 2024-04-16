@@ -664,4 +664,9 @@ public class Lists<T> implements CollectionLike<T, Lists<T>>, Associate<T> {
         Checks.check("Cannot pop an empty list.", () -> !this.isEmpty());
         return this.ls.remove(0);
     }
+
+    public Lists<T> set(Integer idx, T value) {
+        this.ls.set(idx, value);
+        return this;
+    }
 }

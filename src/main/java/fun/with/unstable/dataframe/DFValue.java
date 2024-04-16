@@ -12,10 +12,14 @@ public class DFValue {
         DECIMAL_FORMAT.setMaximumFractionDigits(340);
     }
 
-    private final Object object;
+    private Object object;
+    private final DFRow row;
+    private final int columnIdx;
 
-    public DFValue(Object object) {
+    public DFValue(DFRow row, int columnIdx, Object object) {
         this.object = object;
+        this.row = row;
+        this.columnIdx = columnIdx;
     }
 
     public Object getObject() {
@@ -52,5 +56,11 @@ public class DFValue {
             return DECIMAL_FORMAT.format(this.object);
         }
         return this.object == null ? "null" : this.object.toString();
+    }
+
+    public DFValue setValue(Object object) {
+        this.object = object;
+        this.row.set(this.columnIdx, object);
+        return this;
     }
 }

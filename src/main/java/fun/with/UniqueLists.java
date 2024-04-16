@@ -109,6 +109,11 @@ public class UniqueLists<T> implements CollectionLike<T, UniqueLists<T>>, Associ
     }
 
     @Override
+    public <R> Lists<R> flatMap(ActionFunction<T, Lists<R>> f) {
+        return Lists.wrap(this.ls).flatMap(f);
+    }
+
+    @Override
     public UniqueLists<T> forEach(ActionConsumer<? super T> consumer) {
         for (T t : this.ls) consumer.accept(t);
         return this;
@@ -188,6 +193,11 @@ public class UniqueLists<T> implements CollectionLike<T, UniqueLists<T>>, Associ
     @Override
     public boolean isEmpty() {
         return this.ls.isEmpty();
+    }
+
+    @Override
+    public boolean notEmpty() {
+        return CollectionLike.super.notEmpty();
     }
 
     @Override

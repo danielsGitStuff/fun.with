@@ -1,6 +1,5 @@
-package fun.with.lists;
+package fun.with;
 
-import fun.with.*;
 import fun.with.lists.classes.BaseTest;
 import fun.with.lists.classes.House;
 import fun.with.misc.Pair;
@@ -15,13 +14,13 @@ import static org.junit.jupiter.api.Assertions.*;
 
 public class ListsTest extends BaseTest {
     @Test
-    public void unique() {
+    public void testUnique() {
         Lists<House> ls = this.housesWithReplicas.unique();
         assertEquals(ls, Lists.of(new House(2, 4), new House(3, 5)));
     }
 
     @Test
-    public void zip() {
+    public void testZip() {
         Lists<Pair<House, Integer>> zipped = this.houses.zip(houseNumbers);
         assertEquals(this.houses.size(), zipped.size());
         zipped.forEachIndexed((index, houseIntegerPair) -> {
@@ -34,7 +33,7 @@ public class ListsTest extends BaseTest {
     }
 
     @Test
-    public void permute() {
+    public void testPermute() {
         Lists<Lists<Integer>> ps = Lists.of(1, 2).permute().withRepetition(2);
         ps.forEachIndexed((index, ls) -> {
             System.out.println(ls);
@@ -48,22 +47,22 @@ public class ListsTest extends BaseTest {
     }
 
     @Test
-    public void toStr() {
+    public void testToStr() {
         assertEquals("l(2)[1,2]", Lists.of(1, 2).toString());
     }
 
     @Test
-    public void first() {
+    public void testFirst() {
         assertEquals(1, Lists.of(1, 2, 3).first());
     }
 
     @Test
-    public void last() {
+    public void testLast() {
         assertEquals(3, Lists.of(1, 2, 3).last());
     }
 
     @Test
-    public void reverse() {
+    public void testReverse() {
         houseNumbers.reverse().forEachIndexed((index, number) -> {
             System.out.println(number);
             int expected = houseNumbers.size() - index;
@@ -72,13 +71,13 @@ public class ListsTest extends BaseTest {
     }
 
     @Test
-    public void sortBy() {
+    public void testSortBy() {
         this.houses.reverse().sortBy(house -> house.doors).forEachIndexed((index, house) ->
                 assertEquals(this.houses.get(index), house));
     }
 
     @Test
-    public void flatMap() {
+    public void testFlatMap() {
         Lists<Integer> ls = Lists.of(1, 2, 3).flatMap(n -> Lists.of(n).repeat(3));
         assertEquals(9, ls.size());
         ls.forEachIndexed((index, n) -> {
@@ -88,7 +87,7 @@ public class ListsTest extends BaseTest {
     }
 
     @Test
-    public void forEach() {
+    public void testForEach() {
         AtomicInteger index = new AtomicInteger();
         Lists.of(1, 2, 3).forEach(n -> {
                     assertEquals(index.get() + 1, n);
@@ -98,7 +97,7 @@ public class ListsTest extends BaseTest {
     }
 
     @Test
-    public void forEachIndexed() {
+    public void testForEachIndexed() {
         AtomicInteger index = new AtomicInteger();
         Lists.of(1, 2, 3).forEachIndexed((i, n) -> {
                     assertEquals(index.get() + 1, n);
@@ -109,7 +108,7 @@ public class ListsTest extends BaseTest {
     }
 
     @Test
-    public void isEmpty() {
+    public void testIsEmpty() {
         assertTrue(Lists.empty().isEmpty());
         assertTrue(Lists.wrap(new ArrayList<>()).isEmpty());
         assertFalse(Lists.wrap(Arrays.asList(1, 2, 3)).isEmpty());
@@ -117,14 +116,14 @@ public class ListsTest extends BaseTest {
     }
 
     @Test
-    void wrap() {
+    public void testWrap() {
         Lists<House> ls = Lists.wrap(this.houses.get());
         assertEquals(this.houses.size(), ls.size());
         assertTrue(ls.zip(this.houses).allMatch(houseHousePair -> houseHousePair.k() == houseHousePair.v()));
     }
 
     @Test
-    void mapIndexed() {
+    public void testMapIndexed() {
         List<Integer> expectedIndices = new ArrayList<>();
         List<House> expectedHouses = new ArrayList<>();
         for (int i = 0; i < this.houses.size(); i++) {
@@ -138,51 +137,43 @@ public class ListsTest extends BaseTest {
     }
 
     @Test
-    void get() {
+    public void testGet() {
     }
 
     @Test
-    void testWrap() {
+    public void testWrap1() {
     }
 
     @Test
-    void testWrap1() {
+    public void testWrap2() {
     }
 
     @Test
-    void testWrap2() {
+    public void testOf() {
     }
 
     @Test
-    void of() {
-    }
-
-    @Test
-    void join() {
+    public void testJoin() {
         String s = Lists.of(1, 2, 3).join("?");
         assertEquals("1?2?3", s);
     }
 
     @Test
-    void empty() {
+    public void testEmpty() {
         assertFalse(Lists.of(1).isEmpty());
         assertTrue(Lists.empty().isEmpty());
         assertTrue(Lists.of(1).drop(1).isEmpty());
     }
 
     @Test
-    void testGet() {
-    }
-
-    @Test
-    void take() {
+    public void testTake() {
         Lists<Integer> numbers = Range.of(0, 6).ls().take(2);
         assertEquals(2, numbers.size());
         numbers.forEachIndexed(Assertions::assertEquals);
     }
 
     @Test
-    void subList() {
+    public void testSubList() {
         Lists<Integer> numbers = Range.of(1, 6).ls();
         Lists<Integer> subList = numbers.subList(2, 3);
         assertEquals(1, subList.size());
@@ -190,39 +181,35 @@ public class ListsTest extends BaseTest {
     }
 
     @Test
-    void filter() {
+    public void testFilter() {
         Lists<Integer> filtered = Lists.of(1, 2, 3, 4, 5).filter(integer -> integer != 3);
         assertFalse(filtered.contains(3));
         assertEquals(4, filtered.size());
     }
 
     @Test
-    void add() {
+    public void testAdd() {
     }
 
     @Test
-    void addAll() {
+    public void testAddAll() {
     }
 
     @Test
-    void testAddAll() {
+    public void testAddTo() {
     }
 
     @Test
-    void addTo() {
+    public void testIterator() {
     }
 
     @Test
-    void iterator() {
-    }
-
-    @Test
-    void size() {
+    public void testSize() {
         assertEquals(3, houseNumbers.size());
     }
 
     @Test
-    void contains() {
+    public void testContains() {
         assertFalse(houseNumbers.contains(0));
         assertTrue(houseNumbers.contains(1));
         assertTrue(houseNumbers.contains(2));
@@ -231,7 +218,7 @@ public class ListsTest extends BaseTest {
     }
 
     @Test
-    void drop() {
+    public void testDrop() {
         Lists<Integer> dropped1 = houseNumbers.drop(1);
         Lists<Integer> dropped3 = houseNumbers.drop(3);
         assertEquals(Lists.of(2, 3), dropped1);
@@ -239,14 +226,14 @@ public class ListsTest extends BaseTest {
     }
 
     @Test
-    void map() {
+    public void testMap() {
         Lists<Integer> numbers = Lists.of(1, 2, 3).map(i -> i - 1);
         numbers.forEachIndexed(Assertions::assertEquals);
         assertEquals(3, numbers.size());
     }
 
     @Test
-    void groupBy1() {
+    public void testGroupBy1() {
         Maps<Integer, Lists<House>> doors2house = this.houses.copy().add(new House(2, 9)).groupBy(house -> house.doors);
         assertEquals(3, doors2house.size());
         assertEquals(1, doors2house.get(3).size());
@@ -255,7 +242,7 @@ public class ListsTest extends BaseTest {
     }
 
     @Test
-    void groupBy2() {
+    public void testGroupBy2() {
         Lists<House> houses = this.houses.copy().add(new House(2, 9));
         Maps<Integer, Lists<Integer>> doors2windows = this.houses.copy().add(new House(2, 9)).groupBy(h -> h.doors, house -> house.windows);
         assertEquals(3, doors2windows.size());
@@ -265,36 +252,36 @@ public class ListsTest extends BaseTest {
     }
 
     @Test
-    void sort() {
+    public void testSort() {
         Lists<Integer> sorted = Lists.of(3, 2, 1, 0).sort(Integer::compare);
         sorted.forEachIndexed(Assertions::assertEquals);
     }
 
     @Test
-    void testHashCode() {
+    public void testHashCode() {
     }
 
     @Test
-    void testEquals() {
+    public void testEquals() {
     }
 
     @Test
-    void testToString() {
+    public void testToString() {
     }
 
     @Test
-    void repeat() {
+    public void testRepeat() {
         assertEquals(this.houseNumbers.size() * 2, this.houseNumbers.repeat(2).size());
     }
 
     @Test
-    void sets() {
+    public void testSets() {
         Sets<Integer> s = Lists.of(1, 2, 3).sets();
         Range.of(1, 3).ls().forEach(i -> assertTrue(s.contains(i)));
     }
 
     @Test
-    void view() {
+    public void testView() {
         Lists<Integer> xs = Range.of(1, 10).ls();
         Lists<Lists<Integer>> ys = xs.reshape(3);
         assertEquals(3, ys.size());
@@ -304,7 +291,7 @@ public class ListsTest extends BaseTest {
     }
 
     @Test
-    void uniqueBy1() {
+    public void testUniqueBy1() {
         Lists<House> uniques = this.housesWithSameDoors.uniqueBy(house -> house.doors, (house1, house2) -> house1);
         assertEquals(2, uniques.size());
         assertEquals(uniques.first(), this.housesWithSameDoors.first());
@@ -316,7 +303,7 @@ public class ListsTest extends BaseTest {
     }
 
     @Test
-    void associateBy() {
+    public void testAssociateBy() {
         Maps<Integer, House> windows2house = this.houses.associateBy(house -> house.windows);
         assertEquals(3, windows2house.size());
         assertTrue(windows2house.containsKey(4));
@@ -329,7 +316,7 @@ public class ListsTest extends BaseTest {
     }
 
     @Test
-    void associateWith() {
+    public void testAssociateWith() {
         System.out.println(this.houses);
         Maps<House, Integer> house2windows = this.houses.associateWith(house -> house.windows);
         assertEquals(3, house2windows.size());

@@ -317,7 +317,7 @@ public class Sets<T> implements CollectionLike<T, Sets<T>>, Associate<T> {
     }
 
     public void print() {
-        System.out.println(this.toString());
+        System.out.println(this);
     }
 
     public Sets<T> clear() {

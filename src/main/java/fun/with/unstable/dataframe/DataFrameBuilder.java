@@ -8,14 +8,14 @@ import fun.with.annotations.Unstable;
 
 @Unstable
 public class DataFrameBuilder {
-    private Lists<Lists<?>> t;
+    private final Lists<Lists<?>> t;
     private Lists<String> columns;
-    private Integer rowSize = null;
+    private final Integer rowSize = null;
 
     private Maps<String, Integer> column2index;
 
-    private Sets<Integer> noNumberColumnIndices = Sets.empty();
-    private Sets<String> noNumberColumns = Sets.empty();
+    private final Sets<Integer> noNumberColumnIndices = Sets.empty();
+    private final Sets<String> noNumberColumns = Sets.empty();
 
     private DataFrameBuilder(Lists<Lists<? extends Object>> t) {
         Sets<Integer> differentRowLengths = t.map(Lists::size).sets();

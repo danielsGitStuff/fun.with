@@ -3,13 +3,14 @@ package fun.with.misc;
 import fun.with.Lists;
 
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
 public class TextReader {
         public static Lists<String> read(File file) {
             List<String> lines = new ArrayList<>();
-            try (BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(file), "UTF-8"))) {
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8))) {
                 String line;
                 boolean first = true;
                 while ((line = reader.readLine()) != null) {

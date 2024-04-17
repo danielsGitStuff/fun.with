@@ -19,7 +19,7 @@ public class Permutations<T> {
     public Lists<Lists<T>> withRepetition(int k) {
         final int n = this.values.size();
         final int size = (int) java.lang.Math.pow(n, k);
-        Lists<Lists<T>> result = Lists.wrap(new ArrayList<>((int) size));
+        Lists<Lists<T>> result = Lists.wrap(new ArrayList<>(size));
         Integer[] wheelIndices = new Integer[k];
         Range.of(k).forEach(i -> wheelIndices[i] = 0);
         for (int ignored = 0; ignored < size; ignored++) {

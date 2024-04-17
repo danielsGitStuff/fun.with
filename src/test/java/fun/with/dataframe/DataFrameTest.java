@@ -1,10 +1,13 @@
 package fun.with.dataframe;
 
 import fun.with.Lists;
-import fun.with.misc.Range;
+import fun.with.Ranges;
+import fun.with.unstable.dataframe.ColumnCast;
 import fun.with.unstable.dataframe.DataFrame;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -14,9 +17,9 @@ class DataFrameTest {
 
     @BeforeEach
     public void before() {
-        Lists<Lists<Object>> t = Range.of(4).ls().map(i -> Range.of(i, i + 2).ls().cast(Object.class));
+        Lists<Lists<Object>> t = Ranges.of(4).ls().map(i -> Ranges.of(i, i + 2).ls().cast(Object.class));
         df1 = DataFrame.fromLists(t);
-        t = Range.of(4).ls().map(i -> Lists.of(i, "a" + i));
+        t = Ranges.of(4).ls().map(i -> Lists.of(i, "a" + i));
         dfWithStrings = DataFrame.fromLists(t);
     }
 
@@ -50,5 +53,15 @@ class DataFrameTest {
         DataFrame selected = df1.select(0).filter(dfvs -> dfvs.first().getInt() > 1).df();
         selected.print();
         assertEquals(2, selected.getRows().first().first().getInt());
+    }
+
+    @Test
+    public void test1() {
+//        this.df1.printAll("this.df1");
+//        this.dfWithStrings.printAll("this.dfWithStrings");
+//        DataFrame df1 = this.df1.setColumns("idx", "some number");
+//        df1 = df1.addColumn("new column").printAll("with new column");
+//        df1.getColumn("new column").forEachIndexed((integer, dfValue) -> dfValue.setValue("ASD" + (integer * integer)));
+//        df1.printAll("df1");
     }
 }

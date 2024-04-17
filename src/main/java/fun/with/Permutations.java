@@ -1,7 +1,5 @@
 package fun.with;
 
-import fun.with.misc.Range;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -21,7 +19,7 @@ public class Permutations<T> {
         final int size = (int) java.lang.Math.pow(n, k);
         Lists<Lists<T>> result = Lists.wrap(new ArrayList<>(size));
         Integer[] wheelIndices = new Integer[k];
-        Range.of(k).forEach(i -> wheelIndices[i] = 0);
+        Ranges.of(k).forEach(i -> wheelIndices[i] = 0);
         for (int ignored = 0; ignored < size; ignored++) {
             Lists<T> ls = Lists.of(wheelIndices).map(this.values::get);
             result.add(ls);

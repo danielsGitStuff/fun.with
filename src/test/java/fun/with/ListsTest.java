@@ -3,7 +3,6 @@ package fun.with;
 import fun.with.lists.classes.BaseTest;
 import fun.with.lists.classes.House;
 import fun.with.misc.Pair;
-import fun.with.misc.Range;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -138,18 +137,38 @@ public class ListsTest extends BaseTest {
 
     @Test
     public void testGet() {
+        List<Integer> s = new ArrayList<>();
+        s.add(1);
+        s.add(2);
+        s.add(3);
+        Lists<Integer> from = Lists.from(s);
+        Lists<Integer> wrap = Lists.wrap(s);
+        assertNotSame(wrap.get(), from.get());
+        assertEquals(wrap, from);
+        assertNotSame(wrap, from);
+        assertSame(s, wrap.get());
     }
 
     @Test
     public void testWrap1() {
-    }
-
-    @Test
-    public void testWrap2() {
+        List<Integer> s = new ArrayList<>();
+        s.add(1);
+        s.add(2);
+        s.add(3);
+        Lists<Integer> ls = Lists.wrap(s);
+        assertEquals(3, s.size());
+        assertSame(s, ls.get());
+        assertSame(s, ls.add(4).get());
+        assertEquals(4, s.size());
     }
 
     @Test
     public void testOf() {
+        Lists<Integer> ls = Lists.of(1, 2, 3);
+        assertEquals(3, ls.size());
+        assertEquals(1, ls.get(0));
+        assertEquals(2, ls.get(1));
+        assertEquals(3, ls.get(2));
     }
 
     @Test
@@ -167,14 +186,14 @@ public class ListsTest extends BaseTest {
 
     @Test
     public void testTake() {
-        Lists<Integer> numbers = Range.of(0, 6).ls().take(2);
+        Lists<Integer> numbers = Ranges.of(0, 6).ls().take(2);
         assertEquals(2, numbers.size());
         numbers.forEachIndexed(Assertions::assertEquals);
     }
 
     @Test
     public void testSubList() {
-        Lists<Integer> numbers = Range.of(1, 6).ls();
+        Lists<Integer> numbers = Ranges.of(1, 6).ls();
         Lists<Integer> subList = numbers.subList(2, 3);
         assertEquals(1, subList.size());
         assertEquals(3, subList.first());
@@ -189,18 +208,44 @@ public class ListsTest extends BaseTest {
 
     @Test
     public void testAdd() {
+        final int expectedSize = this.houses.size() + 1;
+        this.houses.add(new House(44, 55));
+        assertEquals(expectedSize, this.houses.size());
+        assertEquals(44, this.houses.last().doors);
     }
 
     @Test
     public void testAddAll() {
+        final int expectedSize = this.houses.size() + 2;
+        Lists<House> newHouses = Lists.of(new House(44, 55), new House(66, 77));
+        newHouses.addAll(this.houses);
+        assertEquals(expectedSize, newHouses.size());
+        assertEquals(44, newHouses.first().doors);
+        assertEquals(66, newHouses.second().doors);
+        assertEquals(this.houses.last(), newHouses.last());
     }
 
     @Test
     public void testAddTo() {
+        Lists<House> target = Lists.of(new House(44, 55));
+        this.houses.addTo(target);
+        assertEquals(this.houses.size() + 1, target.size());
+        for (int i = 1; i < target.size(); i++) {
+            int j = i - 1;
+            assertEquals(target.get(i), this.houses.get(j));
+        }
     }
 
     @Test
     public void testIterator() {
+        Iterator<House> iterator = this.houses.iterator();
+        int count = 0;
+        assertTrue(iterator.hasNext());
+        while (iterator.hasNext()) {
+            House h = iterator.next();
+            assertEquals(h, this.houses.get(count));
+            count++;
+        }
     }
 
     @Test
@@ -277,12 +322,12 @@ public class ListsTest extends BaseTest {
     @Test
     public void testSets() {
         Sets<Integer> s = Lists.of(1, 2, 3).sets();
-        Range.of(1, 3).ls().forEach(i -> assertTrue(s.contains(i)));
+        Ranges.of(1, 3).ls().forEach(i -> assertTrue(s.contains(i)));
     }
 
     @Test
     public void testView() {
-        Lists<Integer> xs = Range.of(1, 10).ls();
+        Lists<Integer> xs = Ranges.of(1, 10).ls();
         Lists<Lists<Integer>> ys = xs.reshape(3);
         assertEquals(3, ys.size());
         ys.forEachIndexed((rowIndex, ints) -> {
@@ -324,5 +369,13 @@ public class ListsTest extends BaseTest {
         assertEquals(this.houses.second().windows, house2windows.get(this.houses.second()));
         assertEquals(this.houses.third().windows, house2windows.get(this.houses.third()));
         System.out.println(house2windows);
+    }
+
+    @Test
+    public void testCollect() {
+        Lists<House> houses = this.houses.get().stream().collect(Lists.collect());
+        assertNotSame(houses, this.houses);
+        assertEquals(this.houses.size(), houses.size());
+        houses.forEachIndexed((integer, house) -> assertEquals(this.houses.get(integer), house));
     }
 }

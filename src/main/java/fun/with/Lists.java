@@ -15,11 +15,14 @@ import java.util.function.Supplier;
 import java.util.stream.Collector;
 
 /**
+ * Overview of 'creation' methods:
  * <ul>
  * <li>'from' methods take elements of something that is already some kind of iterable and hold its content in a new list.</li>
  * <li>'of' methods take one or more individual elements and put them into a list.</li>
  * <li>'wrap' methods just reference the list argument such that changes that occur to the argument list also affect the current instance of Lists.</li>
  * </ul>
+ *  Generally speaking, all methods that modify, add or remove single elements and addAll() modify the internal list.
+ *  Methods intended to modify multiple values or deliver sub lists, like map() or filter() return new lists.
  *
  * @param <T>
  */
@@ -177,6 +180,7 @@ public class Lists<T> implements CollectionLike<T, Lists<T>>, Associate<T> {
         }
         return ls;
     }
+
     @Override
     public <R> Lists<R> flatMap(ActionFunction<T, Lists<R>> f) {
         Lists<R> ls = Lists.empty();

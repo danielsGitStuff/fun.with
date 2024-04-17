@@ -1,7 +1,7 @@
 package fun.with.util;
 
 import fun.with.NumberCasting;
-import fun.with.misc.Range;
+import fun.with.Ranges;
 
 import java.util.Iterator;
 
@@ -13,19 +13,19 @@ public class RangeIterator<T extends Number> implements Iterator<T> {
     private final T start;
     private double doubleCurrent;
 
-    public RangeIterator(Range<T> range) {
-        this.doubleStop = range.getStop().doubleValue();
-        this.doubleStep = range.getStep().doubleValue();
-        this.doubleCurrent = range.getStart().doubleValue();
-        this.positive = range.isPositive();
-        this.start = range.getStart();
+    public RangeIterator(Ranges<T> ranges) {
+        this.doubleStop = ranges.getStop().doubleValue();
+        this.doubleStep = ranges.getStep().doubleValue();
+        this.doubleCurrent = ranges.getStart().doubleValue();
+        this.positive = ranges.isPositive();
+        this.start = ranges.getStart();
     }
 
 
     @Override
     public boolean hasNext() {
         if (this.positive) return this.doubleCurrent < this.doubleStop;
-        return this.doubleCurrent >= this.doubleStop;
+        return this.doubleCurrent > this.doubleStop;
     }
 
     @Override

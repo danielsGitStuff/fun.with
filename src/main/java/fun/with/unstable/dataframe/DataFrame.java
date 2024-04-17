@@ -4,7 +4,7 @@ import fun.with.*;
 import fun.with.annotations.Unstable;
 import fun.with.interfaces.CollectionLike;
 import fun.with.misc.Pair;
-import fun.with.misc.Range;
+import fun.with.Ranges;
 import fun.with.misc.Strings;
 import fun.with.misc.TextReader;
 import fun.with.unstable.Try;
@@ -26,13 +26,12 @@ public class DataFrame {
     private Sets<String> noNumberColumns = Sets.empty();
     private List<Integer> indices = new ArrayList<>();
 
-    private List<ColumnCast> columnCasts = new ArrayList<>();
 
     /**
      * @param t each item in t is a row in a table
      */
     public static DataFrame fromLists(Lists<Lists<Object>> t) {
-        return DataFrame.fromLists(t, Range.of(t.size()).ls().get());
+        return DataFrame.fromLists(t, Ranges.of(t.size()).ls().get());
     }
 
     public static DataFrame fromLists(Lists<Lists<Object>> t, List<Integer> indices) {
@@ -50,7 +49,6 @@ public class DataFrame {
         for (DFRow column : columnWise.get()) {
             Pair<ColumnCast, DFRow> casted = column.cast();
             castedColumnWise.add(casted.v());
-            this.columnCasts.add(casted.k());
         }
         this.t = DataFrame.transpose(castedColumnWise);
         this.indices = indices;
@@ -60,14 +58,14 @@ public class DataFrame {
 
     private void initColumns() {
         if (this.rowSize > 0)
-            this.columns = Range.of(this.rowSize).ls().map(i -> "Column" + i);
+            this.columns = Ranges.of(this.rowSize).ls().map(i -> "Column" + i);
         else
             this.columns = Lists.empty();
         this.column2index = this.columns.associateIndexed((idx, c) -> Pair.of(c, idx));
     }
 
     DataFrame(Lists<DFRow> rows) {
-        this(rows, Range.of(rows.size()).ls().get());
+        this(rows, Ranges.of(rows.size()).ls().get());
     }
 
     public static DataFrame fromCsv(File csvFile, String delimiter) {
@@ -76,7 +74,7 @@ public class DataFrame {
                     Lists<Lists<Object>> ss = Lists.wrap(strings).map(s -> Lists.of(s.split(delimiter)).cast(Object.class));
                     Lists<String> columnNames = ss.first().map(Object::toString);
                     Lists<Lists<Object>> content = ss.drop(1);
-                    content.map(os -> os.addAll(columnNames.size() - os.size() > 0 ? Range.of(columnNames.size() - os.size()).ls().map(x -> null) : Lists.empty())); // fill up missing values
+                    content.map(os -> os.addAll(columnNames.size() - os.size() > 0 ? Ranges.of(columnNames.size() - os.size()).ls().map(x -> null) : Lists.empty())); // fill up missing values
                     DataFrame d = DataFrame.fromLists(content).setColumns(columnNames);
                     return d;
                 }
@@ -89,7 +87,7 @@ public class DataFrame {
                     Lists<String> columnNames = Lists.of(lines.first().split(delimiter));
                     Lists<String> body = lines.drop(1);
                     Lists<Lists<Object>> content = body.map(s -> Lists.of(s.split(delimiter)).cast(Object.class));
-                    content.map(os -> os.addAll(columnNames.size() - os.size() > 0 ? Range.of(columnNames.size() - os.size()).ls().map(x -> null) : Lists.empty())); // fill up missing values
+                    content.map(os -> os.addAll(columnNames.size() - os.size() > 0 ? Ranges.of(columnNames.size() - os.size()).ls().map(x -> null) : Lists.empty())); // fill up missing values
                     DataFrame d = DataFrame.fromLists(content).setColumns(columnNames);
                     return d;
                 }
@@ -129,7 +127,7 @@ public class DataFrame {
         Integer rowSize = DataFrame.checkTable(t);
         if (t.isEmpty())
             return Lists.empty();
-        Lists<DFRow> columnWise = Range.of(rowSize).ls().map(integer -> new DFRow());
+        Lists<DFRow> columnWise = Ranges.of(rowSize).ls().map(integer -> new DFRow());
         for (int columnIndex = 0; columnIndex < rowSize; columnIndex++) {
             for (int rowIndex = 0; rowIndex < t.size(); rowIndex++) {
                 columnWise.get(columnIndex).addValue(t.get(rowIndex).getRaw(columnIndex));
@@ -381,20 +379,10 @@ public class DataFrame {
         return this.t.map(row -> row.get(idx));
     }
 
-    public List<ColumnCast> getColumnCasts() {
-        return columnCasts;
-    }
-
-    public DataFrame setColumnCasts(List<ColumnCast> columnCasts) {
-        this.columnCasts = columnCasts;
-        return this;
-    }
-
     public DataFrame takeRows(int n) {
         Lists<Lists<Object>> t = this.getRows().take(n).map(dfRow -> dfRow.getValues().map(DFValue::getObject));
         return DataFrame.fromLists(t) //
-                .setColumns(this.getColumns()) //
-                .setColumnCasts(this.getColumnCasts());
+                .setColumns(this.getColumns());
     }
 
     public DataFrame addColumn(String columnName) {

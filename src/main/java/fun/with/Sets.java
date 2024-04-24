@@ -28,6 +28,10 @@ public class Sets<T> implements CollectionLike<T, Sets<T>>, Associate<T> {
         return new Sets<>(xs);
     }
 
+    public static <X> Sets<X> from(Set<X> xs) {
+        return new Sets<>(new HashSet<>(xs));
+    }
+
     public Set<T> get() {
         return this.set;
     }

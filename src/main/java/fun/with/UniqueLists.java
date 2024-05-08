@@ -238,4 +238,9 @@ public class UniqueLists<T> implements CollectionLike<T, UniqueLists<T>>, Associ
         return false;
     }
 
+    @Override
+    public UniqueLists<T> nonNull() {
+        return this.filter(Objects::nonNull);
+    }
+
 }

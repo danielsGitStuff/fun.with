@@ -126,4 +126,6 @@ public interface CollectionLike<T, Re> {
     boolean allMatch(ActionPredicate<T> predicate);
 
     boolean anyMatch(ActionPredicate<T> predicate);
+
+    Re nonNull();
 }

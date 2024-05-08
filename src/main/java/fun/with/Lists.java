@@ -359,6 +359,11 @@ public class Lists<T> implements CollectionLike<T, Lists<T>>, Associate<T> {
         return false;
     }
 
+    @Override
+    public Lists<T> nonNull() {
+        return this.filter(Objects::nonNull);
+    }
+
     public <X> Lists<X> map(ActionFunction<? super T, X> f) {
         List<X> ls = new ArrayList<>(this.ls.size());
         for (T t : this.ls) {

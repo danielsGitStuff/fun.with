@@ -315,6 +315,11 @@ public class Sets<T> implements CollectionLike<T, Sets<T>>, Associate<T> {
         return false;
     }
 
+    @Override
+    public Sets<T> nonNull() {
+        return this.filter(Objects::nonNull);
+    }
+
 
     public static <X> Sets<X> empty() {
         return new Sets<>(new HashSet<>());

@@ -31,6 +31,15 @@ public class Try {
         return supplier.get();
     }
 
+    public static <X> X ignorantSupply(ActionSupplier<X> supplier) {
+        try {
+            return supplier.get();
+        }catch (Exception e){
+            e.printStackTrace();
+            return null;
+        }
+    }
+
     public static <X> X defaultOrSupply(X defaultX, ActionSupplier<X> supplier) {
         try {
             return supplier.get();

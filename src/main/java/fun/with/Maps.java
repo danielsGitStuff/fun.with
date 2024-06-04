@@ -2,13 +2,13 @@ package fun.with;
 
 import fun.with.actions.ActionBiConsumer;
 import fun.with.actions.ActionBiFunction;
+import fun.with.actions.ActionFunction;
 import fun.with.actions.ActionTriConsumer;
 import fun.with.misc.Pair;
 
 import java.util.*;
 import java.util.function.BiFunction;
 import java.util.function.BiPredicate;
-import java.util.function.Function;
 
 public class Maps<K, V> {
 
@@ -92,19 +92,27 @@ public class Maps<K, V> {
         return this;
     }
 
-    public Maps<K, V> computeIfAbsent(K k, Function<? super K, ? extends V> function) {
-        this.m.computeIfAbsent(k, function);
+    public V computeIfAbsent(K k, ActionFunction<? super K, ? extends V> mappingFunction) {
+        return this.m.computeIfAbsent(k, mappingFunction::apply);
+    }
+
+    public Maps<K, V> putIfAbsent(K k, ActionFunction<? super K, ? extends V> function) {
+        this.m.computeIfAbsent(k, function::apply);
         return this;
     }
 
-    public Maps<K, V> computeIfPresent(K k, BiFunction<? super K, ? super V, ? extends V> biFunction) {
-        this.m.computeIfPresent(k, biFunction);
+    public Maps<K, V> putIfPresent(K k, ActionBiFunction<? super K, ? super V, ? extends V> biFunction) {
+        this.m.computeIfPresent(k, biFunction::apply);
         return this;
     }
 
-    public Maps<K, V> compute(K k, BiFunction<? super K, ? super V, ? extends V> biFunction) {
-        this.m.compute(k, biFunction);
+    public Maps<K, V> putComputation(K k, ActionBiFunction<? super K, ? super V, ? extends V> biFunction) {
+        this.m.compute(k, biFunction::apply);
         return this;
+    }
+
+    public V compute(K k, ActionBiFunction<? super K, ? super V, ? extends V> biFunction) {
+        return this.m.compute(k, biFunction::apply);
     }
 
     public Maps<K, V> merge(K k, V v, BiFunction<? super V, ? super V, ? extends V> biFunction) {

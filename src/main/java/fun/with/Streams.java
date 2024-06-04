@@ -77,6 +77,18 @@ public class Streams<T> {
         this.stream.forEach(other::add);
     }
 
+    public Streams<T> filterIndexed(ActionBiPredicate<Integer, T> predicate){
+        return this.mapIndexed(Pair::of).filter(integerTPair -> predicate.test(integerTPair.k(), integerTPair.v())).map(Pair::v);
+    }
+
+    public <X> Streams<X> map(ActionFunction<T,X> f){
+        return Streams.wrap(this.stream.map(f::apply));
+    }
+
+    public Stream<T> get() {
+        return this.stream;
+    }
+
 //    public Streams<T> unique() {
 //        ConcurrentHashMap<T, Object> m = new ConcurrentHashMap<>();
 //

@@ -678,4 +678,20 @@ public class Lists<T> implements CollectionLike<T, Lists<T>>, Associate<T> {
         this.ls.set(idx, value);
         return this;
     }
+
+    public Integer indexOf(ActionPredicate<T> predicate) {
+        int idx = 0;
+        for (T l : this.ls) {
+            if (predicate.test(l)) {
+                return idx;
+            }
+            idx++;
+        }
+        return null;
+    }
+
+    public Integer indexOf(Object o) {
+        int idx = this.ls.indexOf(o);
+        return idx >= 0 ? idx : null;
+    }
 }

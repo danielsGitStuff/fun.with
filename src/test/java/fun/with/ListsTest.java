@@ -378,4 +378,57 @@ public class ListsTest extends BaseTest {
         assertEquals(this.houses.size(), houses.size());
         houses.forEachIndexed((integer, house) -> assertEquals(this.houses.get(integer), house));
     }
+
+    @Test
+    void mapIndexed() {
+    }
+
+    @Test
+    void get() {
+    }
+
+    @Test
+    void drop() {
+        Lists<House> dropped = this.houses.drop(1);
+        assertEquals(this.houses.size() - 1, dropped.size());
+        assertEquals(this.houses.second(), dropped.first());
+        assertEquals(this.houses.third(), dropped.second());
+    }
+
+    @Test
+    void testIntersection1() {
+        House first = this.houses.first();
+        House second = this.houses.second();
+        House h1 = new House(first.doors, first.windows);
+        House h2 = new House(second.doors, second.windows);
+        assertEquals(2, this.houses.intersection(Lists.of(h1, h2)).size());
+    }
+
+    @Test
+    void testIntersection2() {
+        House first = this.houses.first();
+        House second = this.houses.second();
+        House h1 = new House(first.doors, first.windows);
+        House h2 = new House(second.doors, second.windows);
+        assertEquals(2, this.houses.intersection(new House[]{h1, h2}).size());
+    }
+
+    @Test
+    void testIntersection3() {
+        House first = this.houses.first();
+        House second = this.houses.second();
+        House h1 = new House(first.doors, first.windows);
+        House h2 = new House(second.doors, second.windows);
+        assertEquals(2, this.houses.intersection(Lists.of(h1, h2).get()).size());
+    }
+
+    @Test
+    void second() {
+        assertEquals(3, this.houses.second().doors);
+    }
+
+    @Test
+    void third() {
+        assertEquals(4, this.houses.third().doors);
+    }
 }

@@ -625,23 +625,6 @@ public class Lists<T> implements CollectionLike<T, Lists<T>>, Associate<T> {
     }
 
     /**
-     * Applies f(x, t) for each t in this list in order.
-     * To be more specific: this returns f(f(x, t[0]), t[1], ...)
-     *
-     * @param x   object to modify.
-     * @param f   modifying function.
-     * @param <X>
-     * @return f(f ( x, t[0]), t[1], ...) for all t in this list.
-     */
-    public <X> X applyTo(X x, ActionBiFunction<X, T, X> f) {
-        X current = x;
-        for (T t : this.ls) {
-            current = f.apply(current, t);
-        }
-        return current;
-    }
-
-    /**
      * Get n random samples from this list.
      *
      * @param n
@@ -679,6 +662,12 @@ public class Lists<T> implements CollectionLike<T, Lists<T>>, Associate<T> {
         return this;
     }
 
+    /**
+     * Tests each element with the given predicate. Returns index if true.
+     *
+     * @param predicate
+     * @return first index of predicate.test() evaluating to true or null.
+     */
     public Integer indexOf(ActionPredicate<T> predicate) {
         int idx = 0;
         for (T l : this.ls) {
@@ -690,8 +679,48 @@ public class Lists<T> implements CollectionLike<T, Lists<T>>, Associate<T> {
         return null;
     }
 
+    /**
+     * @param o
+     * @return first index of o or null if not found
+     */
     public Integer indexOf(Object o) {
         int idx = this.ls.indexOf(o);
         return idx >= 0 ? idx : null;
+    }
+
+    /**
+     * Filter out all elements that are contained in others.
+     *
+     * @param others the elements to get rid of
+     * @return a new {@link Lists} with no elements from others in it.
+     */
+    public Lists<T> subtract(CollectionLike<T, ?> others) {
+        Set<T> set = new HashSet<>(others.getCollection());
+        return this.filter(it -> !set.contains(it));
+    }
+
+    /**
+     * Filter out all elements that are contained in others.
+     *
+     * @param others the elements to get rid of
+     * @return a new {@link Lists} with no elements from others in it.
+     */
+    public Lists<T> subtract(Collection<T> others) {
+        Set<T> set = new HashSet<>(others);
+        return this.filter(it -> !set.contains(it));
+    }
+
+    /**
+     * Fold this list from the left.
+     * @param x start value
+     * @param f
+     * @return f(ls[2], f(ls[1], f(ls[0], x))) and so on.
+     * @param <X>
+     */
+    public <X> X foldl(X x, ActionBiFunction<T, X, X> f) {
+        for (T t : this.ls) {
+            x = f.apply(t, x);
+        }
+        return x;
     }
 }

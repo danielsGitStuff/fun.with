@@ -5,9 +5,6 @@ import fun.with.actions.*;
 
 import java.util.Collection;
 import java.util.Iterator;
-import java.util.function.BiConsumer;
-import java.util.function.Consumer;
-import java.util.function.Predicate;
 
 public interface CollectionLike<T, Re> {
 

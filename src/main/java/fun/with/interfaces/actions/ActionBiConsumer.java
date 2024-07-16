@@ -1,4 +1,4 @@
-package fun.with.actions;
+package fun.with.interfaces.actions;
 
 public interface ActionBiConsumer<T,S> extends Action {
     void performAction(T t, S s) throws Exception;

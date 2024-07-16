@@ -1,4 +1,4 @@
-package fun.with.actions;
+package fun.with.interfaces.actions;
 
 public interface ActionTriConsumer<R, T, S> extends Action {
     void performAction(R r, T t, S s) throws Exception;

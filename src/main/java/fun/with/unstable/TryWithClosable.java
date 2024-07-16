@@ -1,7 +1,7 @@
 package fun.with.unstable;
 
-import fun.with.actions.ActionConsumer;
-import fun.with.actions.ActionFunction;
+import fun.with.interfaces.actions.ActionConsumer;
+import fun.with.interfaces.actions.ActionFunction;
 
 import java.io.FileInputStream;
 

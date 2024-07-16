@@ -70,4 +70,8 @@ public class Longs {
         this.format = format;
         return this;
     }
+
+    public Long get(){
+        return this.i;
+    }
 }

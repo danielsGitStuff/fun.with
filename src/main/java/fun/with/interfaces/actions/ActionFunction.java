@@ -1,4 +1,4 @@
-package fun.with.actions;
+package fun.with.interfaces.actions;
 
 public interface ActionFunction<T, S> extends Action {
     S performAction(T t) throws Exception;

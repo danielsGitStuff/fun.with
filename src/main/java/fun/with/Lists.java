@@ -1,6 +1,6 @@
 package fun.with;
 
-import fun.with.actions.*;
+import fun.with.interfaces.actions.*;
 import fun.with.interfaces.Associate;
 import fun.with.interfaces.CollectionLike;
 import fun.with.misc.Checks;
@@ -712,14 +712,32 @@ public class Lists<T> implements CollectionLike<T, Lists<T>>, Associate<T> {
 
     /**
      * Fold this list from the left.
-     * @param x start value
+     *
+     * @param x   start value
      * @param f
-     * @return f(ls[2], f(ls[1], f(ls[0], x))) and so on.
      * @param <X>
+     * @return f(ls[2], f ( ls[1], f ( ls[0], x))) and so on.
      */
     public <X> X foldl(X x, ActionBiFunction<T, X, X> f) {
         for (T t : this.ls) {
             x = f.apply(t, x);
+        }
+        return x;
+    }
+
+    /**
+     * Fold this list from the right.
+     *
+     * @param x   start value
+     * @param f
+     * @param <X>
+     * @return f(ls[N - 2], f ( ls[N - 1], f ( ls[N], x))) and so on. Where N is last index of ls.
+     */
+    public <X> X foldr(X x, ActionBiFunction<T, X, X> f) {
+        int idx = this.ls.size() - 1;
+        while (idx >= 1) {
+            x = f.apply(this.ls.get(idx), x);
+            idx--;
         }
         return x;
     }

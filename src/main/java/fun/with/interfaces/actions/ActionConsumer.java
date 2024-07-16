@@ -1,4 +1,4 @@
-package fun.with.actions;
+package fun.with.interfaces.actions;
 
 public interface ActionConsumer<T> extends Action {
     void performAction(T t) throws Exception;

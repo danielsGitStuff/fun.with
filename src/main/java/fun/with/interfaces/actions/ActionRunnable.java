@@ -1,4 +1,4 @@
-package fun.with.actions;
+package fun.with.interfaces.actions;
 
 public interface ActionRunnable extends Action {
     void performAction() throws Exception;

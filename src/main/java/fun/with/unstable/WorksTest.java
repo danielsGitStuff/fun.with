@@ -1,6 +1,6 @@
 package fun.with.unstable;
 
-import fun.with.actions.ActionRunnable;
+import fun.with.interfaces.actions.ActionRunnable;
 
 /**
  * Test whether some operation can be executed or throws an {@link Exception}.

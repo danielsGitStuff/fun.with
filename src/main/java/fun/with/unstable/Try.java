@@ -1,7 +1,7 @@
 package fun.with.unstable;
 
-import fun.with.actions.ActionRunnable;
-import fun.with.actions.ActionSupplier;
+import fun.with.interfaces.actions.ActionRunnable;
+import fun.with.interfaces.actions.ActionSupplier;
 import fun.with.annotations.Unstable;
 
 @Unstable(reason = "not sure it handles that well")

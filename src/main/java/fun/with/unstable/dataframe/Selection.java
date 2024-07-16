@@ -2,8 +2,8 @@ package fun.with.unstable.dataframe;
 
 import fun.with.Lists;
 import fun.with.Sets;
-import fun.with.actions.ActionBiPredicate;
-import fun.with.actions.ActionPredicate;
+import fun.with.interfaces.actions.ActionBiPredicate;
+import fun.with.interfaces.actions.ActionPredicate;
 import fun.with.annotations.Unstable;
 
 import java.util.ArrayList;

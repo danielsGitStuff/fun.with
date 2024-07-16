@@ -1,12 +1,11 @@
 package fun.with;
 
-import fun.with.actions.*;
 import fun.with.annotations.Unstable;
 import fun.with.interfaces.CollectionLike;
+import fun.with.interfaces.actions.*;
 import fun.with.misc.Pair;
 
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Stream;
 
 

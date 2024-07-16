@@ -1,8 +1,8 @@
 package fun.with;
 
-import fun.with.actions.*;
 import fun.with.interfaces.Associate;
 import fun.with.interfaces.CollectionLike;
+import fun.with.interfaces.actions.*;
 import fun.with.misc.Pair;
 import fun.with.misc.Unique;
 

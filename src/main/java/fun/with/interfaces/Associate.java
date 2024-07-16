@@ -3,8 +3,8 @@ package fun.with.interfaces;
 import fun.with.Lists;
 import fun.with.Maps;
 import fun.with.misc.Pair;
-import fun.with.actions.ActionBiFunction;
-import fun.with.actions.ActionFunction;
+import fun.with.interfaces.actions.ActionBiFunction;
+import fun.with.interfaces.actions.ActionFunction;
 
 import java.util.Map;
 

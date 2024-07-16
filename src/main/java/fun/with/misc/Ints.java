@@ -70,4 +70,8 @@ public class Ints {
         this.format = format;
         return this;
     }
+
+    public Integer get() {
+        return this.i;
+    }
 }

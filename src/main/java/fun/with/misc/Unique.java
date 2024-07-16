@@ -1,8 +1,8 @@
 package fun.with.misc;
 
-import fun.with.actions.ActionBiFunction;
-import fun.with.actions.ActionFunction;
-import fun.with.actions.ActionSupplier;
+import fun.with.interfaces.actions.ActionBiFunction;
+import fun.with.interfaces.actions.ActionFunction;
+import fun.with.interfaces.actions.ActionSupplier;
 import fun.with.interfaces.CollectionLike;
 
 import java.util.ArrayList;

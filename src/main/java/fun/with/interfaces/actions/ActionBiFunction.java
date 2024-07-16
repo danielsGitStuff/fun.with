@@ -1,4 +1,4 @@
-package fun.with.actions;
+package fun.with.interfaces.actions;
 
 public interface ActionBiFunction<T, S, R> extends Action {
     R performAction(T t, S s) throws Exception;

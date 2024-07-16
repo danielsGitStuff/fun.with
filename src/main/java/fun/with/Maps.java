@@ -1,9 +1,9 @@
 package fun.with;
 
-import fun.with.actions.ActionBiConsumer;
-import fun.with.actions.ActionBiFunction;
-import fun.with.actions.ActionFunction;
-import fun.with.actions.ActionTriConsumer;
+import fun.with.interfaces.actions.ActionBiConsumer;
+import fun.with.interfaces.actions.ActionBiFunction;
+import fun.with.interfaces.actions.ActionFunction;
+import fun.with.interfaces.actions.ActionTriConsumer;
 import fun.with.misc.Pair;
 
 import java.util.*;
@@ -50,12 +50,22 @@ public class Maps<K, V> {
     }
 
     public <KK, VV> Maps<KK, VV> map(ActionBiFunction<K, V, Pair<KK, VV>> f) {
-        Map<KK, VV> m = new HashMap<>();
+        Map<KK, VV> m = this.newMap();
         for (Map.Entry<K, V> e : this.m.entrySet()) {
             Pair<KK, VV> pair = f.apply(e.getKey(), e.getValue());
             m.put(pair.k(), pair.v());
         }
         return Maps.wrap(m);
+    }
+
+    private <KK,VV> Map<KK, VV> newMap() {
+        if (this.m instanceof LinkedHashMap) {
+            return new LinkedHashMap<>();
+        } else if (this.m instanceof HashMap) {
+            return new HashMap<>();
+        } else {
+            throw new RuntimeException("Got some strange map: " + this.m.getClass().getSimpleName());
+        }
     }
 
 
@@ -157,7 +167,7 @@ public class Maps<K, V> {
     }
 
     public Maps<K, V> filter(BiPredicate<K, V> predicate) {
-        Map<K, V> m = new HashMap<>();
+        Map<K, V> m = this.newMap();
         for (Map.Entry<K, V> e : this.m.entrySet()) {
             if (predicate.test(e.getKey(), e.getValue()))
                 m.put(e.getKey(), e.getValue());
@@ -180,7 +190,7 @@ public class Maps<K, V> {
     }
 
     public Maps<K, V> keep(K... ks) {
-        Map<K, V> m = new HashMap<>();
+        Map<K, V> m = this.newMap();
         for (K k : ks) {
             if (this.m.containsKey(k))
                 m.put(k, this.m.get(k));
@@ -189,7 +199,7 @@ public class Maps<K, V> {
     }
 
     public Maps<K, V> intersection(Set<K> other) {
-        Map<K, V> m = new HashMap<>();
+        Map<K, V> m = this.newMap();
         for (K k : other) {
             if (this.m.containsKey(k))
                 m.put(k, this.m.get(k));
@@ -242,7 +252,9 @@ public class Maps<K, V> {
     }
 
     public Maps<K, V> copy() {
-        return Maps.wrap(new HashMap<>(this.m));
+        Map<K, V> m = this.newMap();
+        m.putAll(this.m);
+        return Maps.wrap(m);
     }
 
     public String join(String limiter, String keyValueSeparator) {
@@ -265,13 +277,13 @@ public class Maps<K, V> {
     }
 
     public <X> Maps<X, V> mapKeys(ActionBiFunction<K, V, X> f) {
-        Map<X, V> xm = new HashMap<>();
+        Map<X, V> xm = this.newMap();
         this.m.forEach((key, value) -> xm.put(f.apply(key, value), value));
         return Maps.wrap(xm);
     }
 
     public <X> Maps<K, X> mapValues(ActionBiFunction<K, V, X> f) {
-        Map<K, X> xm = new HashMap<>();
+        Map<K, X> xm = this.newMap();
         this.m.forEach((key, value) -> xm.put(key, f.apply(key, value)));
         return Maps.wrap(xm);
     }

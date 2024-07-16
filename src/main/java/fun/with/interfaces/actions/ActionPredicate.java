@@ -1,4 +1,4 @@
-package fun.with.actions;
+package fun.with.interfaces.actions;
 
 public interface ActionPredicate<T> extends Action {
     boolean performAction(T t) throws Exception;

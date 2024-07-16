@@ -1,7 +1,7 @@
 package fun.with.interfaces;
 
 import fun.with.Lists;
-import fun.with.actions.*;
+import fun.with.interfaces.actions.*;
 
 import java.util.Collection;
 import java.util.Iterator;

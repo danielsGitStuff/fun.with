@@ -43,9 +43,19 @@ public abstract class ColumnCast implements Function<Object, Object> {
 
         @Override
         public Object apply(Object o) {
-            return o == null ? null : (o instanceof String ? o : o.toString());
+            if (o == null) return null;
+            if (o instanceof String) return o;
+            throw new RuntimeException("cannot cast to string");
         }
     }
 
-    public static Lists<ColumnCast> CASTS = Lists.of(new BooleanCast(), new IntCast(), new DoubleCast(), new StringCast());
+    public static class ObjectCast extends ColumnCast {
+
+        @Override
+        public Object apply(Object o) {
+            return o;
+        }
+    }
+
+    public static Lists<ColumnCast> CASTS = Lists.of(new BooleanCast(), new IntCast(), new DoubleCast(), new StringCast(), new ObjectCast());
 }

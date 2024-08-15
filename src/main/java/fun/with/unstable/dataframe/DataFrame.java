@@ -228,17 +228,32 @@ public class DataFrame {
         return this;
     }
 
+    /**
+     *
+     * Selects columns by name.
+     * @param columnNames
+     * @return
+     */
     public Selection select(String... columnNames) {
         Selection selection = Selection.of(this, columnNames);
         this.checkColumnNames(columnNames);
         return selection;
     }
 
+    /**
+     * Selects all columns.
+     * @return
+     */
     public Selection select() {
         Selection selection = Selection.of(this, this.columns.mapIndexed((integer, s) -> integer));
         return selection;
     }
 
+    /**
+     * Selects columns by name.
+     * @param columnNames
+     * @return
+     */
     public Selection select(Lists<String> columnNames) {
         String[] columnNamesArr = new String[columnNames.size()];
         columnNames.forEachIndexed((idx, s) -> columnNamesArr[idx] = s);
@@ -247,6 +262,11 @@ public class DataFrame {
         return selection;
     }
 
+    /**
+     * Selects columns by index.
+     * @param columnIndices
+     * @return
+     */
     public Selection select(Integer... columnIndices) {
         Selection selection = Selection.of(this, Lists.of(columnIndices));
         return selection;

@@ -45,7 +45,7 @@ public class Selection {
     }
 
     /**
-     * @param predicate takes the selected
+     * @param predicate keeps the selected rows.
      * @return
      */
     public Selection filter(ActionPredicate<Lists<DFValue>> predicate) {
@@ -54,7 +54,22 @@ public class Selection {
         for (int rowIndex : this.selectedRows) {
             DFRow row = this.df.t.get(rowIndex);
             Lists<DFValue> selectedRow = columnIndices.map(row::get);
-            Boolean keep = predicate.test(selectedRow);
+            boolean keep = predicate.test(selectedRow);
+            if (keep)
+                newSelectedRows.add(rowIndex);
+        }
+        return new Selection(this.df, this.selectedColumnNames, newSelectedRows);
+    }
+
+    /**
+     * @param predicate keeps the selected rows.
+     * @return
+     */
+    public Selection filterRows(ActionPredicate<DFRow> predicate) {
+        List<Integer> newSelectedRows = new ArrayList<>();
+        for (int rowIndex : this.selectedRows) {
+            DFRow row = this.df.t.get(rowIndex);
+            boolean keep = predicate.test(row);
             if (keep)
                 newSelectedRows.add(rowIndex);
         }
@@ -76,7 +91,7 @@ public class Selection {
 
     /**
      * Produces a new {@link DataFrame} based on the current selectedRows.
-     * This will keep all columns.
+     * This will keep only the selected or all (if not specified) columns.
      *
      * @return
      */
@@ -104,6 +119,30 @@ public class Selection {
             DFRow row = new DFRow();
             for (String column : this.selectedColumnNames.get()) {
                 Integer columnIdx = this.df.column2index.get(column);
+                DFValue o = this.df.t.get(rowIndex).get(columnIdx);
+                row.addValue(o.getObject());
+            }
+            int contentHash = row.contentHash();
+            if (!contentHashes.contains(contentHash)) {
+                selectedRows.add(rowIndex);
+            }
+            contentHashes.add(contentHash);
+        }
+        return new Selection(this.df, this.selectedColumnNames, selectedRows);
+    }
+
+    /**
+     * Will keep the first rows which are unique by the given columns.
+     * @param columns
+     * @return
+     */
+    public Selection unique(String... columns) {
+        Lists<Integer> filterColumnIndices = Lists.of(columns).map(s -> this.df.column2index.get(s));
+        Sets<Integer> contentHashes = Sets.empty();
+        List<Integer> selectedRows = new ArrayList<>();
+        for (int rowIndex : this.selectedRows) {
+            DFRow row = new DFRow();
+            for (Integer columnIdx : filterColumnIndices.get()) {
                 DFValue o = this.df.t.get(rowIndex).get(columnIdx);
                 row.addValue(o.getObject());
             }

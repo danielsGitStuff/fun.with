@@ -50,6 +50,10 @@ public class DFValue {
         return this.object == null;
     }
 
+    public <X> X getCast(Class<X> type) {
+        return (X) this.object;
+    }
+
     @Override
     public String toString() {
         if (this.object instanceof Double) {

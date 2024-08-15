@@ -50,10 +50,6 @@ public class ListsTest extends BaseTest {
         assertEquals("l(2)[1,2]", Lists.of(1, 2).toString());
     }
 
-    @Test
-    public void testFirst() {
-        assertEquals(1, Lists.of(1, 2, 3).first());
-    }
 
     @Test
     public void testLast() {
@@ -268,6 +264,11 @@ public class ListsTest extends BaseTest {
         Lists<Integer> dropped3 = houseNumbers.drop(3);
         assertEquals(Lists.of(2, 3), dropped1);
         assertEquals(Lists.empty(), dropped3);
+
+        Lists<House> dropped = this.houses.drop(1);
+        assertEquals(this.houses.size() - 1, dropped.size());
+        assertEquals(this.houses.second(), dropped.first());
+        assertEquals(this.houses.third(), dropped.second());
     }
 
     @Test
@@ -380,22 +381,6 @@ public class ListsTest extends BaseTest {
     }
 
     @Test
-    void mapIndexed() {
-    }
-
-    @Test
-    void get() {
-    }
-
-    @Test
-    void drop() {
-        Lists<House> dropped = this.houses.drop(1);
-        assertEquals(this.houses.size() - 1, dropped.size());
-        assertEquals(this.houses.second(), dropped.first());
-        assertEquals(this.houses.third(), dropped.second());
-    }
-
-    @Test
     void testIntersection1() {
         House first = this.houses.first();
         House second = this.houses.second();
@@ -423,12 +408,17 @@ public class ListsTest extends BaseTest {
     }
 
     @Test
-    void second() {
+    public void testFirst() {
+        assertEquals(1, Lists.of(1, 2, 3).first());
+    }
+
+    @Test
+    void testSecond() {
         assertEquals(3, this.houses.second().doors);
     }
 
     @Test
-    void third() {
+    void testThird() {
         assertEquals(4, this.houses.third().doors);
     }
 }

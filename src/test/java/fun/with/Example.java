@@ -57,7 +57,7 @@ public class Example {
                 "// => " + houses2, null);
 
         Lists<House> additionalHouses = houses.copy().add(new House(10, 11)).add(new House(12, 13));
-        p2("        Lists<House> additionalHouses = houses.add(new House(10, 11)).add(new House(12, 13));", "add elements as you go (modifies the underlying list).", additionalHouses);
+        p2("Lists<House> additionalHouses = houses.copy().add(new House(10, 11)).add(new House(12, 13));", "add elements as you go (modifies the underlying list).", additionalHouses);
 
         Maps<House, Integer> house2windows = houses.associateWith(house -> house.windows + 1);
         this.p2("Maps<House, Integer> house2windows = houses.associateWith(house -> house.windows + 1);", "create a Map with all houses and their according amount of windows", house2windows);
@@ -133,10 +133,10 @@ public class Example {
 
     public static void p2(Lists<String> codeLines, String caption, Object result) {
         System.out.println("- " + caption);
-        System.out.println("- ```java");
-        codeLines.forEach(s -> System.out.println("  " + s));
-        System.out.println("  // => " + result.toString());
-        System.out.println("  ```");
+        System.out.println("```java");
+        codeLines.forEach(System.out::println);
+        System.out.println("// => " + result.toString());
+        System.out.println("```");
         System.out.println();
     }
 

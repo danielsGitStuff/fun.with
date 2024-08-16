@@ -49,6 +49,14 @@ public class DFRow {
         return new DFValue(this, idx, this.values.get(idx));
     }
 
+    public DFValue get(String columnName, Object defaultValue) {
+        if (!this.df.column2index.containsKey(columnName)) {
+            return new DFValue(this, -1, defaultValue);
+        }
+        int idx = this.df.column2index.get(columnName);
+        return new DFValue(this, idx, this.values.get(idx));
+    }
+
     public Object getRaw(int columnIndex) {
         return this.values.get(columnIndex);
     }
@@ -91,5 +99,9 @@ public class DFRow {
 
     public DataFrame getDf() {
         return this.df;
+    }
+
+    public DFRow copy() {
+        return new DFRow().setValues(this.getValues().map(DFValue::getObject));
     }
 }

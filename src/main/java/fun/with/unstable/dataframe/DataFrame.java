@@ -3,6 +3,7 @@ package fun.with.unstable.dataframe;
 import fun.with.*;
 import fun.with.annotations.Unstable;
 import fun.with.interfaces.CollectionLike;
+import fun.with.interfaces.actions.ActionFunction;
 import fun.with.misc.Pair;
 import fun.with.Ranges;
 import fun.with.misc.Strings;
@@ -10,6 +11,9 @@ import fun.with.misc.TextReader;
 import fun.with.unstable.Try;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
@@ -229,8 +233,8 @@ public class DataFrame {
     }
 
     /**
-     *
      * Selects columns by name.
+     *
      * @param columnNames
      * @return
      */
@@ -242,6 +246,7 @@ public class DataFrame {
 
     /**
      * Selects all columns.
+     *
      * @return
      */
     public Selection select() {
@@ -251,6 +256,7 @@ public class DataFrame {
 
     /**
      * Selects columns by name.
+     *
      * @param columnNames
      * @return
      */
@@ -264,6 +270,7 @@ public class DataFrame {
 
     /**
      * Selects columns by index.
+     *
      * @param columnIndices
      * @return
      */
@@ -395,6 +402,15 @@ public class DataFrame {
         return this.t.map(row -> row.get(idx));
     }
 
+    public Boolean hasColumn(String column) {
+        return this.column2index.containsKey(column);
+    }
+
+    public Integer getColumnIndex(String column) {
+        this.checkColumnNames(column);
+        return this.column2index.get(column);
+    }
+
     public Lists<DFValue> getColumn(Integer idx) {
         return this.t.map(row -> row.get(idx));
     }
@@ -415,5 +431,44 @@ public class DataFrame {
         t.forEach(row -> row.add(value));
         DataFrame df = DataFrame.fromLists(t).setColumns(columns);
         return df;
+    }
+
+    public <X> DataFrame computeColumn(String columnName, Integer columnIndex, ActionFunction<DFRow, X> f) {
+        Lists<X> columnValues = this.t.map(f::apply);
+        Lists<DFRow> rows;
+        columnIndex = columnIndex == null ? this.column2index.size() : columnIndex;
+        Integer finalColumnIndex = columnIndex;
+        if (columnIndex >= this.column2index.size()) {
+            rows = this.t.mapIndexed((rowIdx, dfRow) -> {
+                Lists<Object> values = dfRow.getValues().map(DFValue::getObject);
+                values.add(columnValues.get(rowIdx));
+                return new DFRow().setValues(values);
+            });
+        } else {
+            rows = this.t.mapIndexed((rowIdx, dfRow) -> {
+                Lists<Object> values = dfRow.getValues().map(DFValue::getObject);
+                values.insert(finalColumnIndex, columnValues.get(rowIdx));
+                return new DFRow().setValues(values);
+            });
+        }
+        Lists<String> columns = this.columns.copy().insert(columnIndex, columnName);
+        return new DataFrame(rows).setColumns(columns);
+    }
+
+    public <X> DataFrame computeColumn(String columnName, ActionFunction<DFRow, X> f) {
+        return this.computeColumn(columnName, null, f);
+    }
+
+    public void toCsv(File file, String delimiter) {
+        delimiter = delimiter == null ? ";" : delimiter;
+        StringBuilder b = new StringBuilder();
+        b.append(this.columns.join(delimiter)).append("\n");
+        String finalDelimiter = delimiter;
+        this.t.forEach(dfRow -> b.append(dfRow.getValues().map(dfValue -> dfValue.isNull() ? "" : dfValue.getObject()).join(finalDelimiter)).append("\n"));
+        try {
+            Files.writeString(file.toPath(), b.toString(), Charset.defaultCharset());
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 }

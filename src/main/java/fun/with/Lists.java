@@ -744,12 +744,18 @@ public class Lists<T> implements CollectionLike<T, Lists<T>>, Associate<T> {
 
     /**
      * Put a new item in a certain position.
+     *
      * @param idx
      * @param x
      * @return
      */
     public Lists<T> insert(int idx, T x) {
         this.ls.add(idx, x);
+        return this;
+    }
+
+    public Lists<T> insert(int idx, Lists<T> xs) {
+        this.ls.addAll(idx, xs.ls);
         return this;
     }
 }

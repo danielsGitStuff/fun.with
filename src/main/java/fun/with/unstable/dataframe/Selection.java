@@ -13,7 +13,7 @@ import java.util.List;
 /**
  * Filters a {@link DataFrame} column and row wise.
  * Can produce a new {@link DataFrame} based on that by calling df().
- * Keep in mind that selectedColumns does not limit df() to return just those columns.
+ * Keep in mind that selectedColumns does limit df() to return just those columns.
  */
 @Unstable
 public class Selection {

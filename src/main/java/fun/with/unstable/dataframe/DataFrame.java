@@ -4,6 +4,7 @@ import fun.with.*;
 import fun.with.annotations.Unstable;
 import fun.with.interfaces.CollectionLike;
 import fun.with.interfaces.actions.ActionFunction;
+import fun.with.misc.Checks;
 import fun.with.misc.Pair;
 import fun.with.Ranges;
 import fun.with.misc.Strings;
@@ -17,6 +18,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 @Unstable
 public class DataFrame {
@@ -333,11 +335,6 @@ public class DataFrame {
     }
 
     public DataFrame printAll(String title) {
-
-//        Maps<String, Integer> col2LengthMap = this.columns.associate(c -> Pair.of(c, Ints.max(this.getColumn(c).map(o -> o.toString().length()))));
-//        Lists<String> filledColumns = this.columns.map(c -> DataFrame.fillStr(c, col2LengthMap.get(c)));
-//        DataFrame df = new DataFrame(this.t, this.indices).setColumns(filledColumns);
-//        df.print(title, null);
         this.print(title, null);
         return this;
     }
@@ -347,7 +344,6 @@ public class DataFrame {
     }
 
     public DataFrame print(String title, Integer noOfRows) {
-//        Lists<String> columns = this.columns.map(c -> Strings.rightPad(c, 5, " "));
         Lists<String> columns = this.columns.mapIndexed((idx, columnName) -> {
             Lists<DFValue> columnValues = this.getColumn(idx);
             Lists<Integer> maxColumnSizes = columnValues.filter(dfValue -> !dfValue.isNull()).map(dfValue -> dfValue.toString().length()).sort(Integer::compareTo);
@@ -433,7 +429,14 @@ public class DataFrame {
         return df;
     }
 
+    private void checkNewColumnNames(Lists<String> newColumnNames) {
+        Sets<String> existing = this.columns.sets();
+        Checks.check("Got a duplicate column name when trying to add these columns: '" + newColumnNames + "' to these columns '" + this.columns + "'", () -> newColumnNames.allMatch(nc -> !existing.contains(nc)));
+    }
+
     public <X> DataFrame computeColumn(String columnName, Integer columnIndex, ActionFunction<DFRow, X> f) {
+        Checks.check("Column name is null", () -> columnName != null);
+        this.checkNewColumnNames(Lists.of(columnName));
         Lists<X> columnValues = this.t.map(f::apply);
         Lists<DFRow> rows;
         columnIndex = columnIndex == null ? this.column2index.size() : columnIndex;
@@ -457,6 +460,40 @@ public class DataFrame {
 
     public <X> DataFrame computeColumn(String columnName, ActionFunction<DFRow, X> f) {
         return this.computeColumn(columnName, null, f);
+    }
+
+    public DataFrame computeColumns(Lists<String> columnNames, Integer columnIndex, ActionFunction<DFRow, Lists<Object>> f) {
+        Checks.check("No column names provided.", () -> columnNames != null && columnNames.notEmpty());
+        Checks.check("Column name is null.", () -> columnNames.allMatch(Objects::nonNull));
+        this.checkNewColumnNames(columnNames);
+        Lists<Lists<Object>> columnValues = this.t.mapIndexed((idx, dfRow) -> {
+            Lists<Object> values = f.apply(dfRow);
+            Checks.check("Expected " + columnNames.size() + " new values, but got " + values.size() + " instead. Happened while computing columns for row " + idx + ": " + dfRow, () -> values.size() == columnNames.size());
+            return values;
+        });
+        Lists<DFRow> rows;
+        columnIndex = columnIndex == null ? this.column2index.size() : columnIndex;
+        Integer finalColumnIndex = columnIndex;
+        if (columnIndex >= this.column2index.size()) {
+            rows = this.t.mapIndexed((rowIdx, dfRow) -> {
+                Lists<Object> values = dfRow.getValues().map(DFValue::getObject);
+                values.addAll(columnValues.get(rowIdx));
+                return new DFRow().setValues(values);
+            });
+        } else {
+            rows = this.t.mapIndexed((rowIdx, dfRow) -> {
+                Lists<Object> values = dfRow.getValues().map(DFValue::getObject);
+                values.insert(finalColumnIndex, columnValues.get(rowIdx));
+                return new DFRow().setValues(values);
+            });
+        }
+
+        Lists<String> columns = this.columns.copy().insert(columnIndex, columnNames);
+        return new DataFrame(rows).setColumns(columns);
+    }
+
+    public DataFrame computeColumns(Lists<String> columnNames, ActionFunction<DFRow, Lists<Object>> f) {
+        return this.computeColumns(columnNames, null, f);
     }
 
     public void toCsv(File file, String delimiter) {

@@ -14,7 +14,6 @@ import fun.with.unstable.Try;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
@@ -31,6 +30,7 @@ public class DataFrame {
     private Sets<Integer> noNumberColumnIndices = Sets.empty();
     private Sets<String> noNumberColumns = Sets.empty();
     private List<Integer> indices = new ArrayList<>();
+    private Lists<ColumnCast> columnCasts = Lists.empty();
 
 
     /**
@@ -55,6 +55,7 @@ public class DataFrame {
         for (DFRow column : columnWise.get()) {
             Pair<ColumnCast, DFRow> casted = column.cast();
             castedColumnWise.add(casted.v());
+            this.columnCasts.add(casted.k());
         }
         this.t = DataFrame.transpose(castedColumnWise);
         this.indices = indices;
@@ -344,11 +345,15 @@ public class DataFrame {
     }
 
     public DataFrame print(String title, Integer noOfRows) {
+        Lists<Integer> columnPaddings = Lists.empty();
         Lists<String> columns = this.columns.mapIndexed((idx, columnName) -> {
             Lists<DFValue> columnValues = this.getColumn(idx);
             Lists<Integer> maxColumnSizes = columnValues.filter(dfValue -> !dfValue.isNull()).map(dfValue -> dfValue.toString().length()).sort(Integer::compareTo);
             int maxLength = maxColumnSizes.isEmpty() ? 0 : maxColumnSizes.last();
+            maxLength = Math.max(maxLength, this.columnCasts.get(idx).getPrintableName(this.getColumn(idx)).length());
+            maxLength = Math.max(maxLength, columnName.length());
             int padding = Math.max(5, maxLength);
+            columnPaddings.add(padding);
             return Strings.rightPad(columnName, padding, " ");
         });
         Lists<Integer> columnCharCount = columns.map(String::length);
@@ -358,8 +363,11 @@ public class DataFrame {
             System.out.println(bars);
             System.out.println(DataFrame.fillStr("| " + title + " ", bars.length() - 2) + "| ");
         }
+        String types = "| " + this.columnCasts.mapIndexed((idx, columnCast) -> Strings.rightPad(columnCast.getPrintableName(this.getColumn(idx)), columnPaddings.get(idx), " ") + " | ").join("");
         System.out.println(bars);
         System.out.println(join);
+        System.out.println(bars);
+        System.out.println(types);
         System.out.println(bars);
         Lists<Integer> absIndices = Lists.empty();
         if (noOfRows != null && this.t.size() > noOfRows) {

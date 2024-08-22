@@ -1,6 +1,7 @@
 package fun.with.unstable.dataframe;
 
 import fun.with.Lists;
+import fun.with.Sets;
 
 import java.util.function.Function;
 
@@ -10,6 +11,8 @@ public abstract class ColumnCast implements Function<Object, Object> {
     public String toString() {
         return this.getClass().getSimpleName();
     }
+
+    public abstract String getPrintableName(Lists<DFValue> values);
 
     public static class BooleanCast extends ColumnCast {
         private static final Function<String, Boolean> cStr2Bool = s -> {
@@ -22,12 +25,22 @@ public abstract class ColumnCast implements Function<Object, Object> {
         public Object apply(Object o) {
             return o == null ? null : (o instanceof Boolean ? o : cStr2Bool.apply(o.toString().toLowerCase()));
         }
+
+        @Override
+        public String getPrintableName(Lists<DFValue> values) {
+            return "Boolean";
+        }
     }
 
     public static class IntCast extends ColumnCast {
         @Override
         public Object apply(Object o) {
             return o == null ? null : (o instanceof Integer ? o : Integer.parseInt(o.toString()));
+        }
+
+        @Override
+        public String getPrintableName(Lists<DFValue> values) {
+            return "Int";
         }
     }
 
@@ -36,6 +49,11 @@ public abstract class ColumnCast implements Function<Object, Object> {
         @Override
         public Object apply(Object o) {
             return o == null ? null : (o instanceof Double ? o : Double.parseDouble(o.toString()));
+        }
+
+        @Override
+        public String getPrintableName(Lists<DFValue> values) {
+            return "Double";
         }
     }
 
@@ -47,6 +65,11 @@ public abstract class ColumnCast implements Function<Object, Object> {
             if (o instanceof String) return o;
             throw new RuntimeException("cannot cast to string");
         }
+
+        @Override
+        public String getPrintableName(Lists<DFValue> values) {
+            return "String";
+        }
     }
 
     public static class ObjectCast extends ColumnCast {
@@ -54,6 +77,18 @@ public abstract class ColumnCast implements Function<Object, Object> {
         @Override
         public Object apply(Object o) {
             return o;
+        }
+
+        @Override
+        public String getPrintableName(Lists<DFValue> values) {
+            // simple check here, no inheritance!
+            if (values != null) {
+                Sets<? extends Class<?>> existingClasses = values.filter(dfValue -> !dfValue.isNull()).map(dfValue -> dfValue.getObject().getClass()).sets();
+                if (existingClasses.size() == 1) {
+                    return "Obj(" + existingClasses.iterator().next().getSimpleName() + ")";
+                }
+            }
+            return "Object";
         }
     }
 

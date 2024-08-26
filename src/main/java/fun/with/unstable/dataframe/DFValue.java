@@ -3,6 +3,7 @@ package fun.with.unstable.dataframe;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.Locale;
+import java.util.Objects;
 
 public class DFValue {
 
@@ -66,5 +67,14 @@ public class DFValue {
         this.object = object;
         this.row.set(this.columnIdx, object);
         return this;
+    }
+
+    public boolean eq(Object o) {
+        return Objects.equals(this.object, o);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(object);
     }
 }

@@ -106,4 +106,17 @@ class DataFrameTest {
         DataFrame finalDf = df;
         expectedColumns.forEachIndexed((columnIdx, expectedColumn) -> assertEquals(expectedColumn, finalDf.getColumns().get(columnIdx)));
     }
+
+    @Test
+    public void testCompute1(){
+        df.printAll("start");
+        df.addRow(1,3,"B");
+        DataFrame changed3 = df.select().filterRows(dfRow -> dfRow.get("n1").eq(1)).df()
+                .compute(dataFrame -> dataFrame.select().filterRows(dfRow -> dfRow.get("n2").eq(2)).getRows()
+                        .forEach(dfRow -> dfRow.get("s1").setValue("DD")));
+        changed3.printAll("test");
+        assertEquals(2, changed3.getRows().size());
+        assertEquals("DD", changed3.getRow(0).get("s1").getString());
+        assertEquals("B", changed3.getRow(1).get("s1").getString());
+    }
 }

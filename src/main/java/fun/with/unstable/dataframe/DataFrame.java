@@ -3,6 +3,7 @@ package fun.with.unstable.dataframe;
 import fun.with.*;
 import fun.with.annotations.Unstable;
 import fun.with.interfaces.CollectionLike;
+import fun.with.interfaces.actions.ActionConsumer;
 import fun.with.interfaces.actions.ActionFunction;
 import fun.with.misc.Checks;
 import fun.with.misc.Pair;
@@ -29,7 +30,7 @@ public class DataFrame {
 
     private Sets<Integer> noNumberColumnIndices = Sets.empty();
     private Sets<String> noNumberColumns = Sets.empty();
-    private List<Integer> indices = new ArrayList<>();
+    List<Integer> indices = new ArrayList<>();
     private Lists<ColumnCast> columnCasts = Lists.empty();
 
 
@@ -37,18 +38,14 @@ public class DataFrame {
      * @param t each item in t is a row in a table
      */
     public static DataFrame fromLists(Lists<Lists<Object>> t) {
-        return DataFrame.fromLists(t, Ranges.of(t.size()).ls().get());
-    }
-
-    public static DataFrame fromLists(Lists<Lists<Object>> t, List<Integer> indices) {
-        Lists<DFRow> rows = t.map(ls -> new DFRow().setValues(ls));
-        DataFrame df = new DataFrame(rows, indices);
+        Lists<DFRow> rows = t.mapIndexed((idx, ls) -> new DFRow(idx).setValues(ls));
+        DataFrame df = new DataFrame(rows);
         df.t.forEach(r -> r.setDf(df));
         df.initColumns();
         return df;
     }
 
-    DataFrame(Lists<DFRow> rows, List<Integer> indices) {
+    DataFrame(Lists<DFRow> rows) {
         this.rowSize = DataFrame.checkTable(rows);
         Lists<DFRow> columnWise = DataFrame.transpose(rows);
         Lists<DFRow> castedColumnWise = Lists.empty();
@@ -58,7 +55,6 @@ public class DataFrame {
             this.columnCasts.add(casted.k());
         }
         this.t = DataFrame.transpose(castedColumnWise);
-        this.indices = indices;
         this.t.forEach(row -> row.setDf(this));
         this.initColumns();
     }
@@ -69,10 +65,6 @@ public class DataFrame {
         else
             this.columns = Lists.empty();
         this.column2index = this.columns.associateIndexed((idx, c) -> Pair.of(c, idx));
-    }
-
-    DataFrame(Lists<DFRow> rows) {
-        this(rows, Ranges.of(rows.size()).ls().get());
     }
 
     public static DataFrame fromCsv(File csvFile, String delimiter) {
@@ -134,7 +126,7 @@ public class DataFrame {
         Integer rowSize = DataFrame.checkTable(t);
         if (t.isEmpty())
             return Lists.empty();
-        Lists<DFRow> columnWise = Ranges.of(rowSize).ls().map(integer -> new DFRow());
+        Lists<DFRow> columnWise = Ranges.of(rowSize).ls().map(integer -> new DFRow(integer));
         for (int columnIndex = 0; columnIndex < rowSize; columnIndex++) {
             for (int rowIndex = 0; rowIndex < t.size(); rowIndex++) {
                 columnWise.get(columnIndex).addValue(t.get(rowIndex).getRaw(columnIndex));
@@ -323,12 +315,16 @@ public class DataFrame {
         Lists<String> columnsToKeep = this.columns.filter(columnsToKeepSet::contains);
         Sets<String> noNumberColumnsToKeep = this.noNumberColumns.filter(columnsToKeepSet::contains);
         Lists<DFRow> newT = Lists.empty();
-        this.t.forEach(row -> newT.add(new DFRow().setDf(this).setValues(row.filterIndexed((integer, o) -> columnIndicesToKeep.contains(integer)))));
+        this.t.forEachIndexed((idx, row) -> newT.add(new DFRow(idx).setDf(this).setValues(row.filterIndexed((integer, o) -> columnIndicesToKeep.contains(integer)))));
         return new DataFrame(newT).setColumns(columnsToKeep).setNoNumberColumns(noNumberColumnsToKeep);
     }
 
     public Lists<DFRow> getRows() {
         return this.t;
+    }
+
+    public DFRow getRow(int rowIdx) {
+        return this.t.get(rowIdx);
     }
 
     public DataFrame print() {
@@ -375,7 +371,7 @@ public class DataFrame {
             absIndices.addAll(first8);
             absIndices.add(this.t.size() - 1);
         } else {
-            absIndices = Lists.wrap(this.indices);
+            absIndices = Ranges.of(this.t.size()).ls();
         }
         absIndices.forEachIndexed((count, rowIndex) -> {
             DFRow row = this.t.get(rowIndex);
@@ -453,13 +449,13 @@ public class DataFrame {
             rows = this.t.mapIndexed((rowIdx, dfRow) -> {
                 Lists<Object> values = dfRow.getValues().map(DFValue::getObject);
                 values.add(columnValues.get(rowIdx));
-                return new DFRow().setValues(values);
+                return new DFRow(rowIdx).setValues(values);
             });
         } else {
             rows = this.t.mapIndexed((rowIdx, dfRow) -> {
                 Lists<Object> values = dfRow.getValues().map(DFValue::getObject);
                 values.insert(finalColumnIndex, columnValues.get(rowIdx));
-                return new DFRow().setValues(values);
+                return new DFRow(rowIdx).setValues(values);
             });
         }
         Lists<String> columns = this.columns.copy().insert(columnIndex, columnName);
@@ -486,13 +482,13 @@ public class DataFrame {
             rows = this.t.mapIndexed((rowIdx, dfRow) -> {
                 Lists<Object> values = dfRow.getValues().map(DFValue::getObject);
                 values.addAll(columnValues.get(rowIdx));
-                return new DFRow().setValues(values);
+                return new DFRow(rowIdx).setValues(values);
             });
         } else {
             rows = this.t.mapIndexed((rowIdx, dfRow) -> {
                 Lists<Object> values = dfRow.getValues().map(DFValue::getObject);
                 values.insert(finalColumnIndex, columnValues.get(rowIdx));
-                return new DFRow().setValues(values);
+                return new DFRow(rowIdx).setValues(values);
             });
         }
 
@@ -515,5 +511,23 @@ public class DataFrame {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public DataFrame compute(ActionConsumer<DataFrame> f) {
+        f.accept(this);
+        return this;
+    }
+
+    public DataFrame copy() {
+        return new DataFrame(this.getRows().mapIndexed((idx, dfRow) -> new DFRow(idx).setValues(dfRow.getValues().map(DFValue::getObject))));
+    }
+
+    public DataFrame addRow(Object... objs) {
+        Checks.check("No values provided.", () -> objs != null && objs.length > 0);
+        Checks.check("Wrong amount of values provided.", () -> objs.length == this.columns.size());
+        Lists<Object> objects = Lists.of(objs);
+        Checks.check("Wrong type.", () -> objects.zip(this.columnCasts).forEach(p -> p.v().apply(p.k())).ok());
+        this.t.add(new DFRow(this.t.size()).setValues(objects).setDf(this));
+        return this;
     }
 }

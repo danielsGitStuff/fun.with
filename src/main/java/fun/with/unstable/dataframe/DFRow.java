@@ -8,11 +8,13 @@ import fun.with.interfaces.actions.ActionBiPredicate;
 import java.util.Objects;
 
 public class DFRow {
+    public final int rowIdx;
     private DataFrame df;
 
     private Lists<Object> values = Lists.empty();
 
-    DFRow() {
+    DFRow(int rowIdx) {
+        this.rowIdx = rowIdx;
     }
 
     public DFRow setDf(DataFrame df) {
@@ -63,7 +65,7 @@ public class DFRow {
 
     public Pair<ColumnCast, DFRow> cast() {
         Pair<ColumnCast, Lists<Object>> result = DataFrame.cast(this.values);
-        return Pair.of(result.k(), new DFRow().setDf(this.df).setValues(result.v()));
+        return Pair.of(result.k(), new DFRow(this.rowIdx).setDf(this.df).setValues(result.v()));
     }
 
     public Lists<Object> filterIndexed(ActionBiPredicate<Integer, DFValue> f) {
@@ -102,6 +104,6 @@ public class DFRow {
     }
 
     public DFRow copy() {
-        return new DFRow().setValues(this.getValues().map(DFValue::getObject));
+        return new DFRow(this.rowIdx).setValues(this.getValues().map(DFValue::getObject));
     }
 }

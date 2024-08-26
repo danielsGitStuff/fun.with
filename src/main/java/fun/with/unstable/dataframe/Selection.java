@@ -3,12 +3,14 @@ package fun.with.unstable.dataframe;
 import fun.with.Lists;
 import fun.with.Sets;
 import fun.with.interfaces.actions.ActionBiPredicate;
+import fun.with.interfaces.actions.ActionConsumer;
 import fun.with.interfaces.actions.ActionPredicate;
 import fun.with.annotations.Unstable;
 
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Filters a {@link DataFrame} column and row wise.
@@ -96,27 +98,35 @@ public class Selection {
      * @return
      */
     public DataFrame df() {
+        Set<Integer> keepColumnIndices = this.selectedColumnNames.map(this.df.column2index::get).sets().get();
+        Lists<DFRow> t = this.getRows().mapIndexed((idx,dfRow) -> new DFRow(idx).
+                setValues(dfRow.getValues()
+                        .filterIndexed((idxx, dfValue) -> keepColumnIndices.contains(idxx))
+                        .map(DFValue::getObject)));
+        Sets<String> selectedNoNumberColumns = this.selectedColumnNames.filter(c -> this.df.getNoNumberColumns().contains(c)).sets();
+        DataFrame df = new DataFrame(t).setColumns(selectedColumnNames).setNoNumberColumns(selectedNoNumberColumns);
+        t.forEach(dfRow -> dfRow.setDf(df));
+        return df;
+    }
+
+    public Lists<DFRow> getRows(){
         Lists<DFRow> t = Lists.empty();
         List<Integer> indices = new ArrayList<>();
         int idx = 0;
         Lists<Integer> selectedColumnIndices = this.selectedColumnNames.map(c -> this.df.column2index.get(c));
-        Sets<String> selectedNoNumberColumns = this.selectedColumnNames.filter(c -> this.df.getNoNumberColumns().contains(c)).sets();
         for (int rowIndex : this.selectedRows) {
             DFRow row = this.df.t.get(rowIndex);
-            Lists<Object> selectedValues = selectedColumnIndices.map(columnIdx -> row.get(columnIdx).getObject());
-            t.add(new DFRow().setValues(selectedValues));
+            t.add(row);
             indices.add(idx++);
         }
-        DataFrame df = new DataFrame(t, indices).setColumns(selectedColumnNames).setNoNumberColumns(selectedNoNumberColumns);
-        t.forEach(dfRow -> dfRow.setDf(df));
-        return df;
+        return t;
     }
 
     public Selection unique() {
         Sets<Integer> contentHashes = Sets.empty();
         List<Integer> selectedRows = new ArrayList<>();
         for (int rowIndex : this.selectedRows) {
-            DFRow row = new DFRow();
+            DFRow row = new DFRow(rowIndex);
             for (String column : this.selectedColumnNames.get()) {
                 Integer columnIdx = this.df.column2index.get(column);
                 DFValue o = this.df.t.get(rowIndex).get(columnIdx);
@@ -141,7 +151,7 @@ public class Selection {
         Sets<Integer> contentHashes = Sets.empty();
         List<Integer> selectedRows = new ArrayList<>();
         for (int rowIndex : this.selectedRows) {
-            DFRow row = new DFRow();
+            DFRow row = new DFRow(rowIndex);
             for (Integer columnIdx : filterColumnIndices.get()) {
                 DFValue o = this.df.t.get(rowIndex).get(columnIdx);
                 row.addValue(o.getObject());

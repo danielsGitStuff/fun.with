@@ -125,4 +125,13 @@ public interface CollectionLike<T, Re> {
     boolean anyMatch(ActionPredicate<T> predicate);
 
     Re nonNull();
+
+    /**
+     * Example use case: test whether an operation can successfully execute: <br>
+     * Lists.of(1, 2, "A").forEach(Integer::parseInt).ok();
+     * @return just returns true
+     */
+    default boolean ok(){
+        return true;
+    };
 }

@@ -350,6 +350,16 @@ public class Lists<T> implements CollectionLike<T, Lists<T>>, Associate<T> {
         return true;
     }
 
+    public boolean allMatchIndexed(ActionBiPredicate<Integer, T> predicate) {
+        int idx = 0;
+        for (T t : this.ls) {
+            if (!predicate.test(idx, t))
+                return false;
+            idx++;
+        }
+        return true;
+    }
+
     @Override
     public boolean anyMatch(ActionPredicate<T> predicate) {
         for (T t : this.ls) {

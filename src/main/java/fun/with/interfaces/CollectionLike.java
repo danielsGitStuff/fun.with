@@ -5,6 +5,7 @@ import fun.with.interfaces.actions.*;
 
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.stream.Stream;
 
 public interface CollectionLike<T, Re> {
 
@@ -81,7 +82,7 @@ public interface CollectionLike<T, Re> {
      */
     Re unique();
 
-    <X> Re  uniqueBy(ActionFunction<T, X> f);
+    <X> Re uniqueBy(ActionFunction<T, X> f);
 
     <X> Re uniqueBy(ActionFunction<T, X> f, ActionBiFunction<T, T, T> collisionSelector);
 
@@ -91,7 +92,7 @@ public interface CollectionLike<T, Re> {
      */
     boolean isEmpty();
 
-    default boolean notEmpty(){
+    default boolean notEmpty() {
         return !this.isEmpty();
     }
 
@@ -116,7 +117,6 @@ public interface CollectionLike<T, Re> {
     Collection<T> getCollection();
 
     /**
-     *
      * @param predicate
      * @return true if all elements satisfy predicate
      */
@@ -129,9 +129,18 @@ public interface CollectionLike<T, Re> {
     /**
      * Example use case: test whether an operation can successfully execute: <br>
      * Lists.of(1, 2, "A").forEach(Integer::parseInt).ok();
+     *
      * @return just returns true
      */
-    default boolean ok(){
+    default boolean ok() {
         return true;
-    };
+    }
+
+    ;
+
+    default <X> X compute(ActionFunction<Re, X> f) {
+        return f.apply((Re) this);
+    }
+
+    Stream<T> stream();
 }

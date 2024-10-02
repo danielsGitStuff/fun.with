@@ -59,7 +59,7 @@ public class DFRow {
         return new DFValue(this, idx, this.values.get(idx));
     }
 
-    public Object getRaw(int columnIndex) {
+    public Object getObject(int columnIndex) {
         return this.values.get(columnIndex);
     }
 

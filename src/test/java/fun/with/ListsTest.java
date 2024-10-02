@@ -421,4 +421,10 @@ public class ListsTest extends BaseTest {
     void testThird() {
         assertEquals(4, this.houses.third().doors);
     }
+
+    @Test
+    void testCompute1(){
+        Integer weirdSum = this.houses.compute(self -> self.size() + self.first().doors);
+        assertEquals(5, weirdSum);
+    }
 }

@@ -13,6 +13,7 @@ import java.util.function.BinaryOperator;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collector;
+import java.util.stream.Stream;
 
 /**
  * Overview of 'creation' methods:
@@ -372,6 +373,11 @@ public class Lists<T> implements CollectionLike<T, Lists<T>>, Associate<T> {
     @Override
     public Lists<T> nonNull() {
         return this.filter(Objects::nonNull);
+    }
+
+    @Override
+    public Stream<T> stream() {
+        return this.ls.stream();
     }
 
     public <X> Lists<X> map(ActionFunction<? super T, X> f) {

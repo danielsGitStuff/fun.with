@@ -129,7 +129,7 @@ public class DataFrame {
         Lists<DFRow> columnWise = Ranges.of(rowSize).ls().map(integer -> new DFRow(integer));
         for (int columnIndex = 0; columnIndex < rowSize; columnIndex++) {
             for (int rowIndex = 0; rowIndex < t.size(); rowIndex++) {
-                columnWise.get(columnIndex).addValue(t.get(rowIndex).getRaw(columnIndex));
+                columnWise.get(columnIndex).addValue(t.get(rowIndex).getObject(columnIndex));
             }
         }
         return columnWise;

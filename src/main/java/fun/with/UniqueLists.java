@@ -8,6 +8,7 @@ import fun.with.misc.Pair;
 import fun.with.misc.Unique;
 
 import java.util.*;
+import java.util.stream.Stream;
 
 /**
  * Like {@link Lists} but keeps elements unique using a {@link HashMap}.
@@ -241,6 +242,11 @@ public class UniqueLists<T> implements CollectionLike<T, UniqueLists<T>>, Associ
     @Override
     public UniqueLists<T> nonNull() {
         return this.filter(Objects::nonNull);
+    }
+
+    @Override
+    public Stream<T> stream() {
+        return this.ls.stream();
     }
 
 }

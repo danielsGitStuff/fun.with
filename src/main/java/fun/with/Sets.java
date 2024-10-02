@@ -7,6 +7,7 @@ import fun.with.misc.Pair;
 import fun.with.misc.Unique;
 
 import java.util.*;
+import java.util.stream.Stream;
 
 public class Sets<T> implements CollectionLike<T, Sets<T>>, Associate<T> {
 
@@ -318,6 +319,11 @@ public class Sets<T> implements CollectionLike<T, Sets<T>>, Associate<T> {
     @Override
     public Sets<T> nonNull() {
         return this.filter(Objects::nonNull);
+    }
+
+    @Override
+    public Stream<T> stream() {
+        return this.set.stream();
     }
 
 

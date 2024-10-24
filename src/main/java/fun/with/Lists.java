@@ -774,4 +774,9 @@ public class Lists<T> implements CollectionLike<T, Lists<T>>, Associate<T> {
         this.ls.addAll(idx, xs.ls);
         return this;
     }
+
+    public Lists<T> removeAt(int idx) {
+        this.ls.remove(idx);
+        return this;
+    }
 }

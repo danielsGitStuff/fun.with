@@ -108,9 +108,9 @@ class DataFrameTest {
     }
 
     @Test
-    public void testCompute1(){
+    public void testCompute1() {
         df.printAll("start");
-        df.addRow(1,3,"B");
+        df.addRow(1, 3, "B");
         DataFrame changed3 = df.select().filterRows(dfRow -> dfRow.get("n1").eq(1)).df()
                 .compute(dataFrame -> dataFrame.select().filterRows(dfRow -> dfRow.get("n2").eq(2)).getRows()
                         .forEach(dfRow -> dfRow.get("s1").setValue("DD")));
@@ -118,5 +118,79 @@ class DataFrameTest {
         assertEquals(2, changed3.getRows().size());
         assertEquals("DD", changed3.getRow(0).get("s1").getString());
         assertEquals("B", changed3.getRow(1).get("s1").getString());
+    }
+
+    public void initReplaceDf() {
+        df = DataFrame.fromLists(Lists.of(Ranges.of(0, 5).ls().cast(Object.class), Ranges.of(10, 15).ls().cast(Object.class)));
+        df.setColumns("a", "b", "c", "d", "e");
+    }
+
+    /**
+     * move the existing column somewhere to the back
+     */
+    @Test
+    public void testComputeReplace1() {
+        this.initReplaceDf();
+        df.printAll("start");
+        DataFrame changed = df.computeColumn("b", 3, r -> r.get("b").getInt() + 3);
+        changed.printAll("test");
+        assertEquals(5, changed.getColumns().size());
+        assertEquals(1, changed.getColumnIndex("c"));
+        assertEquals(3, changed.getColumnIndex("b"));
+        assertEquals(4, changed.getColumnIndex("e"));
+        assertEquals(4, changed.getColumn(3).first().getInt());
+        assertEquals(14, changed.getColumn(3).second().getInt());
+    }
+
+    /**
+     * move the existing column somewhere to the front
+     */
+    @Test
+    public void testComputeReplace2() {
+        this.initReplaceDf();
+        df.printAll("start");
+        DataFrame changed = df.computeColumn("d", 1, r -> r.get("d").getInt() + 3);
+        changed.printAll("test");
+        assertEquals(5, changed.getColumns().size());
+        assertEquals(1, changed.getColumnIndex("d"));
+        assertEquals(2, changed.getColumnIndex("b"));
+        assertEquals(4, changed.getColumnIndex("e"));
+        assertEquals(6, changed.getColumn(1).first().getInt());
+        assertEquals(16, changed.getColumn(1).second().getInt());
+    }
+
+    /**
+     * existing column recomputed in the same place
+     */
+    @Test
+    public void testComputeReplace3() {
+        this.initReplaceDf();
+        df.printAll("start");
+        DataFrame changed = df.computeColumn("d", r -> r.get("d").getInt() + 3);
+        changed.printAll("test");
+        assertEquals(5, changed.getColumns().size());
+        assertEquals(3, changed.getColumnIndex("d"));
+        assertEquals(1, changed.getColumnIndex("b"));
+        assertEquals(4, changed.getColumnIndex("e"));
+        assertEquals(6, changed.getColumn(3).first().getInt());
+        assertEquals(16, changed.getColumn(3).second().getInt());
+    }
+
+    /**
+     * new column computation stored as last column
+     */
+    @Test
+    public void testComputeReplace4() {
+        this.initReplaceDf();
+        df.printAll("start");
+        DataFrame changed = df.computeColumn("ddd", r -> r.get("d").getInt() + 3);
+        changed.printAll("test");
+        assertEquals(6, changed.getColumns().size());
+        assertEquals(3, changed.getColumnIndex("d"));
+        assertEquals(1, changed.getColumnIndex("b"));
+        assertEquals(4, changed.getColumnIndex("e"));
+        assertEquals(5, changed.getColumnIndex("ddd"));
+        assertEquals(6, changed.getColumn(5).first().getInt());
+        assertEquals(16, changed.getColumn(5).second().getInt());
     }
 }

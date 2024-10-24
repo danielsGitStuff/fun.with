@@ -433,18 +433,30 @@ public class DataFrame {
         return df;
     }
 
-    private void checkNewColumnNames(Lists<String> newColumnNames) {
-        Sets<String> existing = this.columns.sets();
-        Checks.check("Got a duplicate column name when trying to add these columns: '" + newColumnNames + "' to these columns '" + this.columns + "'", () -> newColumnNames.allMatch(nc -> !existing.contains(nc)));
-    }
-
     public <X> DataFrame computeColumn(String columnName, Integer columnIndex, ActionFunction<DFRow, X> f) {
         Checks.check("Column name is null", () -> columnName != null);
-        this.checkNewColumnNames(Lists.of(columnName));
         Lists<X> columnValues = this.t.map(f::apply);
         Lists<DFRow> rows;
-        columnIndex = columnIndex == null ? this.column2index.size() : columnIndex;
-        Integer finalColumnIndex = columnIndex;
+        // these indices indicate where if column gets moved (if it already exists) or will be placed.
+        Integer deletionIndex = null;
+        if (this.column2index.containsKey(columnName)) {
+            Integer existingIndex = this.column2index.get(columnName);
+            if (columnIndex == null || Objects.equals(existingIndex, columnIndex)) {
+                columnIndex = existingIndex + 1;
+                deletionIndex = existingIndex;
+            } else {
+                if (columnIndex > existingIndex) {
+                    columnIndex++;
+                    deletionIndex = existingIndex;
+                } else {
+                    deletionIndex = existingIndex + 1;
+                }
+            }
+        } else {
+            columnIndex = columnIndex == null ? this.column2index.size() : columnIndex;
+        }
+        final Integer finalDeletionIndex = deletionIndex;
+        final Integer finalColumnIndex = columnIndex;
         if (columnIndex >= this.column2index.size()) {
             rows = this.t.mapIndexed((rowIdx, dfRow) -> {
                 Lists<Object> values = dfRow.getValues().map(DFValue::getObject);
@@ -455,10 +467,16 @@ public class DataFrame {
             rows = this.t.mapIndexed((rowIdx, dfRow) -> {
                 Lists<Object> values = dfRow.getValues().map(DFValue::getObject);
                 values.insert(finalColumnIndex, columnValues.get(rowIdx));
+                if (finalDeletionIndex != null) {
+                    values.removeAt(finalDeletionIndex);
+                }
                 return new DFRow(rowIdx).setValues(values);
             });
         }
         Lists<String> columns = this.columns.copy().insert(columnIndex, columnName);
+        if (finalDeletionIndex != null) {
+            columns.removeAt(finalDeletionIndex);
+        }
         return new DataFrame(rows).setColumns(columns);
     }
 
@@ -469,7 +487,6 @@ public class DataFrame {
     public DataFrame computeColumns(Lists<String> columnNames, Integer columnIndex, ActionFunction<DFRow, Lists<Object>> f) {
         Checks.check("No column names provided.", () -> columnNames != null && columnNames.notEmpty());
         Checks.check("Column name is null.", () -> columnNames.allMatch(Objects::nonNull));
-        this.checkNewColumnNames(columnNames);
         Lists<Lists<Object>> columnValues = this.t.mapIndexed((idx, dfRow) -> {
             Lists<Object> values = f.apply(dfRow);
             Checks.check("Expected " + columnNames.size() + " new values, but got " + values.size() + " instead. Happened while computing columns for row " + idx + ": " + dfRow, () -> values.size() == columnNames.size());
@@ -507,6 +524,9 @@ public class DataFrame {
         String finalDelimiter = delimiter;
         this.t.forEach(dfRow -> b.append(dfRow.getValues().map(dfValue -> dfValue.isNull() ? "" : dfValue.getObject()).join(finalDelimiter)).append("\n"));
         try {
+            if (!file.getParentFile().exists()) {
+                file.getParentFile().mkdirs();
+            }
             Files.writeString(file.toPath(), b.toString(), Charset.defaultCharset());
         } catch (IOException e) {
             throw new RuntimeException(e);

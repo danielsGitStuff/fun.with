@@ -39,6 +39,10 @@ public class DFValue {
         return (Integer) this.object;
     }
 
+    public Long getLong() {
+        return (Long) this.object;
+    }
+
     public Boolean getBoolean() {
         return (Boolean) this.object;
     }
@@ -49,6 +53,10 @@ public class DFValue {
 
     public boolean isNull() {
         return this.object == null;
+    }
+
+    public boolean isNotNull() {
+        return this.object != null;
     }
 
     public <X> X getCast(Class<X> type) {

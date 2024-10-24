@@ -44,6 +44,18 @@ public abstract class ColumnCast implements Function<Object, Object> {
         }
     }
 
+    public static class LongCast extends ColumnCast {
+        @Override
+        public Object apply(Object o) {
+            return o == null ? null : (o instanceof Long ? o : Long.parseLong(o.toString()));
+        }
+
+        @Override
+        public String getPrintableName(Lists<DFValue> values) {
+            return "Long";
+        }
+    }
+
     public static class DoubleCast extends ColumnCast {
 
         @Override
@@ -92,5 +104,5 @@ public abstract class ColumnCast implements Function<Object, Object> {
         }
     }
 
-    public static Lists<ColumnCast> CASTS = Lists.of(new BooleanCast(), new IntCast(), new DoubleCast(), new StringCast(), new ObjectCast());
+    public static Lists<ColumnCast> CASTS = Lists.of(new BooleanCast(), new IntCast(), new LongCast(), new DoubleCast(), new StringCast(), new ObjectCast());
 }

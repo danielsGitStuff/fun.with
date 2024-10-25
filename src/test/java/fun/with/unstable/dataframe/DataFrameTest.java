@@ -6,6 +6,11 @@ import fun.with.exampledata.House;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.charset.Charset;
+import java.nio.file.Files;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 class DataFrameTest {
@@ -192,5 +197,28 @@ class DataFrameTest {
         assertEquals(5, changed.getColumnIndex("ddd"));
         assertEquals(6, changed.getColumn(5).first().getInt());
         assertEquals(16, changed.getColumn(5).second().getInt());
+    }
+
+    private File writeTestFile(Lists<String> lines) throws IOException {
+        String csvText = lines.join("\n");
+        File csvFile = new File("test.csv");
+        Files.writeString(csvFile.toPath(), csvText);
+        System.out.println("TEST CSV: ");
+        System.out.println(csvText);
+        return csvFile;
+    }
+
+    @Test
+    public void parseFile1() throws Exception {
+        File csvFile = this.writeTestFile(Lists.of("a;\"b\";c", "1;\"b;;;\";3"));
+        DataFrame df = DataFrame.fromCsv3(csvFile, ';');
+        df.print("ok");
+    }
+
+    @Test
+    public void parseFile2() throws Exception {
+        File csvFile = this.writeTestFile(Lists.of("a;b;c", "1;\"b;\\\";;\";3"));
+        DataFrame df = DataFrame.fromCsv3(csvFile, ';');
+        df.print("ok");
     }
 }

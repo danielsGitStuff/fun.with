@@ -83,6 +83,7 @@ public class Lists<T> implements CollectionLike<T, Lists<T>>, Associate<T> {
     }
 
     public T get(int index) {
+        index = index < 0 ? this.size() + index : index;
         return this.ls.get(index);
     }
 
@@ -778,5 +779,18 @@ public class Lists<T> implements CollectionLike<T, Lists<T>>, Associate<T> {
     public Lists<T> removeAt(int idx) {
         this.ls.remove(idx);
         return this;
+    }
+
+    public Lists<Lists<T>> partition(int parts) {
+        int desiredSize = Math.ceilDiv(this.ls.size(), parts);
+        Lists<Lists<T>> result = Lists.empty();
+        int currentStartIdx = 0;
+        for (int i = 1; i <= parts; i++) {
+            int stopIdx = Math.min(this.size(), currentStartIdx + desiredSize);
+            Lists<T> ts = this.subList(currentStartIdx, stopIdx);
+            result.add(ts);
+            currentStartIdx += desiredSize;
+        }
+        return result;
     }
 }

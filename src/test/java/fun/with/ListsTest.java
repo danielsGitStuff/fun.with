@@ -423,8 +423,39 @@ public class ListsTest extends BaseTest {
     }
 
     @Test
-    void testCompute1(){
+    void testCompute1() {
         Integer weirdSum = this.houses.compute(self -> self.size() + self.first().doors);
         assertEquals(5, weirdSum);
+    }
+
+    @Test
+    public void testPartition1() {
+        Ranges.of(5, 11).forEach(integer -> this.houses.add(new House(integer, integer + 12)));
+        assertEquals(9, this.houses.size());
+        Lists<Lists<House>> partitioned = this.houses.partition(2);
+        assertEquals(2, partitioned.size());
+        assertEquals(5, partitioned.first().size());
+        assertEquals(4, partitioned.second().size());
+    }
+
+    @Test
+    public void testPartition2() {
+        Ranges.of(5, 11).forEach(integer -> this.houses.add(new House(integer, integer + 12)));
+        assertEquals(9, this.houses.size());
+        Lists<Lists<House>> partitioned = this.houses.partition(1);
+        assertEquals(1, partitioned.size());
+        assertEquals(9, partitioned.first().size());
+    }
+
+    @Test
+    public void testPartition3() {
+        Ranges.of(5, 11).forEach(integer -> this.houses.add(new House(integer, integer + 12)));
+        assertEquals(9, this.houses.size());
+        Lists<Lists<House>> partitioned = this.houses.partition(3);
+        assertEquals(3, partitioned.size());
+        assertEquals(3, partitioned.first().size());
+        assertEquals(3, partitioned.second().size());
+        assertEquals(3, partitioned.third().size());
+        assertEquals(partitioned.third().second(), this.houses.get(-2));
     }
 }

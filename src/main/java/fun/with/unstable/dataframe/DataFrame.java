@@ -19,6 +19,10 @@ import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 @Unstable
 public class DataFrame {
@@ -86,6 +90,83 @@ public class DataFrame {
                     Lists<String> columnNames = Lists.of(lines.first().split(delimiter));
                     Lists<String> body = lines.drop(1);
                     Lists<Lists<Object>> content = body.map(s -> Lists.of(s.split(delimiter)).cast(Object.class));
+                    content.map(os -> os.addAll(columnNames.size() - os.size() > 0 ? Ranges.of(columnNames.size() - os.size()).ls().map(x -> null) : Lists.empty())); // fill up missing values
+                    DataFrame d = DataFrame.fromLists(content).setColumns(columnNames);
+                    return d;
+                }
+        );
+        return df;
+    }
+
+    public static Lists<Object> parseCsvLine(String line, Character delimiter) {
+        Lists<Object> row = Lists.empty();
+        StringBuilder b = new StringBuilder();
+        boolean inQuotes = false;
+        boolean escapedBackslash = false;
+        final char BACKSLASH = '\\';
+        final char Q = '\"';
+        final Character DEL = delimiter;
+        for (int i = 0; i < line.length(); i++) {
+            Character current = line.charAt(i);
+            Character next = i < line.length() - 1 ? line.charAt(i + 1) : null;
+            if (current == DEL) {
+                if (inQuotes) {
+                    b.append(current);
+                } else {
+                    row.add(b.toString());
+                    b = new StringBuilder();
+                }
+            } else if (current == Q) {
+                if (escapedBackslash) {
+                    b.append(current);
+                    escapedBackslash = false;
+                } else {
+                    inQuotes = !inQuotes;
+                }
+            } else if (current == BACKSLASH) {
+                escapedBackslash = !escapedBackslash;
+            } else if (escapedBackslash) {
+                b.append(current);
+            } else {
+                b.append(current);
+            }
+        }
+        row.add(b.toString());
+        return row;
+    }
+
+    public static DataFrame fromCsv3(File csvFile, Character delimiter) {
+        DataFrame df = Try.with(() -> TextReader.read(csvFile)).function(lines -> {
+                    Lists<String> columnNames = DataFrame.parseCsvLine(lines.first(), delimiter).map(Object::toString);
+                    Lists<String> body = lines.drop(1);
+                    Lists<Lists<Object>> content = body.map(line -> DataFrame.parseCsvLine(line, delimiter));
+                    content.map(os -> os.addAll(columnNames.size() - os.size() > 0 ? Ranges.of(columnNames.size() - os.size()).ls().map(x -> null) : Lists.empty())); // fill up missing values
+                    DataFrame d = DataFrame.fromLists(content).setColumns(columnNames);
+                    return d;
+                }
+        );
+        return df;
+    }
+
+    public static DataFrame fromCsv4(File csvFile, Character delimiter) {
+        DataFrame df = Try.with(() -> TextReader.read(csvFile)).function(lines -> {
+                    ExecutorService executor = Executors.newFixedThreadPool(4);
+
+                    Lists<String> columnNames = DataFrame.parseCsvLine(lines.first(), delimiter).map(Object::toString);
+                    Lists<String> body = lines.drop(1);
+                    Lists<Lists<String>> partitioned = body.partition(4);
+                    Lists<Future<Lists<Lists<Object>>>> futures = partitioned.map(rows ->
+                            executor.submit(new Callable<Lists<Lists<Object>>>() {
+                                @Override
+                                public Lists<Lists<Object>> call() throws Exception {
+                                    Lists<Lists<Object>> map = rows.map(s -> DataFrame.parseCsvLine(s, delimiter));
+                                    return map;
+                                }
+                            })
+                    );
+                    executor.shutdown();
+                    Lists<Lists<Lists<Object>>> partitionedValues = futures.map(Future::get);
+                    Lists<Lists<Object>> content = partitionedValues.flatMap(listsLists -> listsLists);
                     content.map(os -> os.addAll(columnNames.size() - os.size() > 0 ? Ranges.of(columnNames.size() - os.size()).ls().map(x -> null) : Lists.empty())); // fill up missing values
                     DataFrame d = DataFrame.fromLists(content).setColumns(columnNames);
                     return d;
@@ -164,6 +245,8 @@ public class DataFrame {
      * @return
      */
     public DataFrame setColumns(Lists<String> columns) {
+        Lists<String> finalColumns = columns;
+        Checks.check("Wanted to set " + columns.size() + " column names but the Dataframe has " + this.rowSize, () -> finalColumns.size() == this.rowSize);
         Maps<String, Integer> columnNameCounts = columns.associate(s -> Pair.of(s, 0));
         columns = columns.map(originalName -> {
             String c = originalName;

@@ -10,6 +10,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -220,5 +221,16 @@ class DataFrameTest {
         File csvFile = this.writeTestFile(Lists.of("a;b;c", "1;\"b;\\\";;\";3"));
         DataFrame df = DataFrame.fromCsv3(csvFile, ';');
         df.print("ok");
+    }
+
+    @Test
+    public void parseFile3() throws Exception {
+        final String line = "1;\"b;;;\";3";
+        List<Object> parsed = DataFrame.parseCsvLineFast(line, ';');
+        System.out.println("DataFrameTest.parseFile3");
+        assertEquals(3, parsed.size());
+        assertEquals("1", parsed.getFirst().toString());
+        assertEquals("b;;;", parsed.get(1).toString());
+        assertEquals("1", parsed.getLast().toString());
     }
 }

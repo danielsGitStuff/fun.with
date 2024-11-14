@@ -458,4 +458,25 @@ public class ListsTest extends BaseTest {
         assertEquals(3, partitioned.third().size());
         assertEquals(partitioned.third().second(), this.houses.get(-2));
     }
+
+    @Test
+    public void testBatch1(){
+        Lists<Integer> ls = Lists.of(1, 2, 3);
+        Lists<Lists<Integer>> b3 = ls.batch(3);
+        Lists<Lists<Integer>> b2 = ls.batch(2);
+        Lists<Lists<Integer>> b10 = ls.batch(10);
+        Lists<Lists<Integer>> bb2 = Lists.of(1, 2, 3, 4, 5, 6).batch(2);
+        System.out.println("ListsTest.testBatch1");
+
+        assertEquals(1, b3.size());
+        assertEquals(2, b2.size());
+        assertEquals(1, b10.size());
+        assertEquals(3, bb2.size());
+
+        Lists.of(b3, b2, b10).forEach(lss -> {
+            Lists<Integer> flat = lss.flatMap(xs -> xs);
+            assertEquals(ls.size(), flat.size());
+            ls.zip(flat).forEach(originalFlat -> assertEquals(originalFlat.k(), originalFlat.v()));
+        });
+    }
 }

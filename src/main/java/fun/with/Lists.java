@@ -793,4 +793,27 @@ public class Lists<T> implements CollectionLike<T, Lists<T>>, Associate<T> {
         }
         return result;
     }
+
+    public Lists<Lists<T>> batch(int batchSize) {
+        Checks.check("Batch size illegal: " + batchSize, () -> batchSize > 0);
+        if (this.isEmpty())
+            return Lists.of();
+        Lists<Lists<T>> result = Lists.of(Lists.empty());
+        Lists<T> current = result.first();
+        int c = 0;
+        int idx = 0;
+        int maxIdx = this.size();
+        for (T t : this.ls) {
+            c++;
+            idx++;
+            current.add(t);
+            if (c == batchSize) {
+                c = 0;
+                if (idx < maxIdx) {
+                    current = result.add(Lists.empty()).last();
+                }
+            }
+        }
+        return result;
+    }
 }

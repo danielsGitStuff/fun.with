@@ -91,6 +91,12 @@ public class DataFrame {
                     Lists<String> body = lines.drop(1);
                     Lists<Lists<Object>> content = body.map(s -> Lists.of(s.split(delimiter)).cast(Object.class));
                     content.map(os -> os.addAll(columnNames.size() - os.size() > 0 ? Ranges.of(columnNames.size() - os.size()).ls().map(x -> null) : Lists.empty())); // fill up missing values
+                    if (content.notEmpty()) {
+                        int actualColumnSize = content.first().size();
+                        if (columnNames.size() < actualColumnSize) {
+                            Ranges.of(1, columnNames.size() - actualColumnSize + 1).forEach(i -> columnNames.add("unknown_" + i));
+                        }
+                    }
                     DataFrame d = DataFrame.fromLists(content).setColumns(columnNames);
                     return d;
                 }
@@ -132,6 +138,49 @@ public class DataFrame {
             }
         }
         row.add(b.toString());
+        return row;
+    }
+
+    @Unstable
+    public static List<Object> parseCsvLineFast(String line, Character delimiter) {
+        List<Object> row = new ArrayList<>();
+        StringBuilder b = new StringBuilder();
+        boolean inQuotes = false;
+        boolean escapedBackslash = false;
+        final char BACKSLASH = '\\';
+        final char Q = '\"';
+        final Character DEL = delimiter;
+        int currentIndex = 0;
+        int debugIndex = 0;
+        while (currentIndex < line.length()) {
+            debugIndex++;
+            int iDelim = line.indexOf(DEL, currentIndex);
+            int endIndex = line.length() - 1;
+            int offset = 1;
+            if (iDelim > 0) {
+                int iQ = line.indexOf(Q, currentIndex);
+                if (iQ == currentIndex) {
+                    currentIndex++;  // skip quote
+                    int nextQ = line.indexOf(Q, iQ + 1);
+                    if (nextQ > 0) {
+                        if (line.charAt(nextQ - 1) == BACKSLASH) {
+                            System.out.println("DataFrame.parseCsvLineFast");
+                        } else {
+                            endIndex = nextQ;
+                            offset = 2;
+                        }
+                    }
+                } else {
+                    endIndex = iDelim;
+
+                }
+            } else {
+                row.add(line.substring(currentIndex));
+                break;
+            }
+            row.add(line.substring(currentIndex, endIndex));
+            currentIndex = endIndex + offset;
+        }
         return row;
     }
 
@@ -544,6 +593,9 @@ public class DataFrame {
             rows = this.t.mapIndexed((rowIdx, dfRow) -> {
                 Lists<Object> values = dfRow.getValues().map(DFValue::getObject);
                 values.add(columnValues.get(rowIdx));
+                if (finalDeletionIndex != null) {
+                    values.removeAt(finalDeletionIndex);
+                }
                 return new DFRow(rowIdx).setValues(values);
             });
         } else {

@@ -35,7 +35,14 @@ public abstract class ColumnCast implements Function<Object, Object> {
     public static class IntCast extends ColumnCast {
         @Override
         public Object apply(Object o) {
-            return o == null ? null : (o instanceof Integer ? o : Integer.parseInt(o.toString()));
+            if (o == null)
+                return null;
+            if (o instanceof Integer)
+                return o;
+            String s = o.toString();
+            if (s.trim().isEmpty())
+                return null;
+            return Integer.parseInt(s);
         }
 
         @Override
@@ -47,8 +54,14 @@ public abstract class ColumnCast implements Function<Object, Object> {
     public static class LongCast extends ColumnCast {
         @Override
         public Object apply(Object o) {
-            return o == null ? null : (o instanceof Long ? o : Long.parseLong(o.toString()));
-        }
+            if (o == null)
+                return null;
+            if (o instanceof Long)
+                return o;
+            String s = o.toString();
+            if (s.trim().isEmpty())
+                return null;
+            return Long.parseLong(s);        }
 
         @Override
         public String getPrintableName(Lists<DFValue> values) {
@@ -60,7 +73,14 @@ public abstract class ColumnCast implements Function<Object, Object> {
 
         @Override
         public Object apply(Object o) {
-            return o == null ? null : (o instanceof Double ? o : Double.parseDouble(o.toString()));
+            if (o == null)
+                return null;
+            if (o instanceof Double)
+                return o;
+            String s = o.toString();
+            if (s.trim().isEmpty())
+                return null;
+            return Double.parseDouble(s);
         }
 
         @Override

@@ -6,6 +6,7 @@ import fun.with.interfaces.CollectionLike;
 import fun.with.misc.Checks;
 import fun.with.misc.Pair;
 import fun.with.misc.Unique;
+import fun.with.util.BackwardCompatibility;
 
 import java.util.*;
 import java.util.function.BiConsumer;
@@ -782,7 +783,7 @@ public class Lists<T> implements CollectionLike<T, Lists<T>>, Associate<T> {
     }
 
     public Lists<Lists<T>> partition(int parts) {
-        int desiredSize = Math.ceilDiv(this.ls.size(), parts);
+        int desiredSize = BackwardCompatibility.ceilDiv(this.ls.size(), parts);
         Lists<Lists<T>> result = Lists.empty();
         int currentStartIdx = 0;
         for (int i = 1; i <= parts; i++) {

@@ -1,10 +1,12 @@
 package fun.with;
 
+import fun.with.annotations.Unstable;
 import fun.with.interfaces.CollectionLike;
 import fun.with.unstable.*;
 
 import java.util.Collection;
 
+@Unstable
 public class Concurrency<Start, Target> {
 
     private Lists<Start> elements;
@@ -114,19 +116,19 @@ public class Concurrency<Start, Target> {
 //        System.out.println(converted);
 
         Concurrency<Integer, Integer> conc2 = Concurrency.initialize(Task.of(Integer.class, i -> i.toString())
-                .then(s -> s + s + s)
-                .then(Integer::parseInt)
-                .then(i -> {
-                    if (i > 200)
-                        return i;
-                    return i / i;
-                })
-                .then(i -> {
-                    System.out.println("Success: " + i + " thread " + Thread.currentThread().getName());
-                    return i;
-                }).consume(i -> {
-                    System.out.println("CONSUME " + i + " thread " + Thread.currentThread().getName());
-                }))
+                        .then(s -> s + s + s)
+                        .then(Integer::parseInt)
+                        .then(i -> {
+                            if (i > 200)
+                                return i;
+                            return i / i;
+                        })
+                        .then(i -> {
+                            System.out.println("Success: " + i + " thread " + Thread.currentThread().getName());
+                            return i;
+                        }).consume(i -> {
+                            System.out.println("CONSUME " + i + " thread " + Thread.currentThread().getName());
+                        }))
                 .handleFailures(failures -> failures.forEach(System.out::println))
                 .withElements(0);
         conc2.map();

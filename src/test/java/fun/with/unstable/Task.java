@@ -1,16 +1,15 @@
 package fun.with.unstable;
 
+import fun.with.interfaces.actions.ActionConsumer;
 import fun.with.interfaces.actions.ActionFunction;
 
-import java.util.Objects;
-import java.util.function.Function;
-
 public class Task<Start, IntermediateSource, Target> {
-    private final ActionFunction<IntermediateSource, Target> function;
+    private ActionFunction<IntermediateSource, Target> function;
 
     private Task<Start, ?, IntermediateSource> predecessor;
     private Task<Start, Target, ?> successor;
     private Task<Start, Start, ?> startTask;
+    private ConsumingTask<Start, Target> consumingTask;
 
     private Task(ActionFunction<IntermediateSource, Target> function) {
         this.function = function;
@@ -28,6 +27,14 @@ public class Task<Start, IntermediateSource, Target> {
         this.successor = successor;
         successor.startTask = this.getStartTask();
         return successor;
+    }
+
+    public <X> ConsumingTask<Start, Target> consume(ActionConsumer<Target> consumer) {
+        ConsumingTask<Start, Target> consumingTask = new ConsumingTask<>(consumer);
+        consumingTask.setStartTask(this.getStartTask());
+        consumingTask.setPredecessor(this);
+        this.consumingTask = consumingTask;
+        return consumingTask;
     }
 
     public Task<Start, Start, ?> getStartTask() {

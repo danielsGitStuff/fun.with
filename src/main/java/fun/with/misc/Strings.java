@@ -2,6 +2,8 @@ package fun.with.misc;
 
 import fun.with.Lists;
 
+import java.nio.charset.StandardCharsets;
+
 public class Strings {
 
     public static Strings wrap(String s) {
@@ -55,5 +57,8 @@ public class Strings {
         return Lists.of(this.toCharArray());
     }
 
+    public static String charsetIsoToUtf(String s) {
+        return new String(s.getBytes(StandardCharsets.ISO_8859_1), StandardCharsets.UTF_8);
+    }
 
 }

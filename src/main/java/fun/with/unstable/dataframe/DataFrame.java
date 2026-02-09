@@ -71,10 +71,10 @@ public class DataFrame {
         this.column2index = this.columns.associateIndexed((idx, c) -> Pair.of(c, idx));
     }
 
-    public static DataFrame fromCsv(File csvFile, String delimiter) {
+    public static DataFrame fromCsv(File csvFile, Character delimiter) {
         Try.supply(() -> Files.readAllLines(csvFile.toPath()));
         DataFrame df = Try.with(() -> Files.readAllLines(csvFile.toPath())).function(strings -> {
-                    Lists<Lists<Object>> ss = Lists.wrap(strings).map(s -> Lists.of(s.split(delimiter)).cast(Object.class));
+                    Lists<Lists<Object>> ss = Lists.wrap(strings).map(s -> DataFrame.parseCsvLineFast(s, delimiter));
                     Lists<String> columnNames = ss.first().map(Object::toString);
                     Lists<Lists<Object>> content = ss.drop(1);
                     content.map(os -> os.addAll(columnNames.size() - os.size() > 0 ? Ranges.of(columnNames.size() - os.size()).ls().map(x -> null) : Lists.empty())); // fill up missing values
@@ -142,8 +142,8 @@ public class DataFrame {
     }
 
     @Unstable
-    public static List<Object> parseCsvLineFast(String line, Character delimiter) {
-        List<Object> row = new ArrayList<>();
+    public static Lists<Object> parseCsvLineFast(String line, Character delimiter) {
+        Lists<Object> row = Lists.empty();
         StringBuilder b = new StringBuilder();
         boolean inQuotes = false;
         boolean escapedBackslash = false;
@@ -295,7 +295,8 @@ public class DataFrame {
      */
     public DataFrame setColumns(Lists<String> columns) {
         Lists<String> finalColumns = columns;
-        Checks.check("Wanted to set " + columns.size() + " column names but the Dataframe has " + this.rowSize, () -> finalColumns.size() == this.rowSize);
+        if (this.columns != null && this.columns.notEmpty())
+            Checks.check("Wanted to set " + columns.size() + " column names but the Dataframe has " + this.columns.size(), () -> finalColumns.size() == this.columns.size());
         Maps<String, Integer> columnNameCounts = columns.associate(s -> Pair.of(s, 0));
         columns = columns.map(originalName -> {
             String c = originalName;
@@ -681,6 +682,14 @@ public class DataFrame {
         Checks.check("No values provided.", () -> objs != null && objs.length > 0);
         Checks.check("Wrong amount of values provided.", () -> objs.length == this.columns.size());
         Lists<Object> objects = Lists.of(objs);
+        Checks.check("Wrong type.", () -> objects.zip(this.columnCasts).forEach(p -> p.v().apply(p.k())).ok());
+        this.t.add(new DFRow(this.t.size()).setValues(objects).setDf(this));
+        return this;
+    }
+
+    public DataFrame addRow(Lists<Object> objects) {
+        Checks.check("No values provided.", () -> objects != null && objects.notEmpty());
+        Checks.check("Wrong amount of values provided.", () -> objects.size() == this.columns.size());
         Checks.check("Wrong type.", () -> objects.zip(this.columnCasts).forEach(p -> p.v().apply(p.k())).ok());
         this.t.add(new DFRow(this.t.size()).setValues(objects).setDf(this));
         return this;

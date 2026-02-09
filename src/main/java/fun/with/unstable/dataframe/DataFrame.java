@@ -29,6 +29,7 @@ public class DataFrame implements DFColumnListener {
     Lists<DFRow> t;
     Lists<DFColumn> columns;
     Maps<String, DFColumn> name2column;
+    Maps<Integer, DFColumn> idx2column;
     Integer rowSize;
 
     private Sets<Integer> noNumberColumnIndices = Sets.empty();
@@ -356,6 +357,18 @@ public class DataFrame implements DFColumnListener {
         return columns;
     }
 
+    public DFColumn getColumn(Integer idx) {
+        Checks.check("idx is null", () -> idx != null);
+        Checks.check("no column idx: " + idx, () -> !this.idx2column.containsKey(idx));
+        return this.idx2column.get(idx);
+    }
+
+    public DFColumn getColumn(String columnName) {
+        Checks.check("columnName is null", () -> columnName != null);
+        Checks.check("column '" + columnName + "' is unknown.", () -> !this.name2column.containsKey(columnName));
+        return this.name2column.get(columnName);
+    }
+
     // public DataFrame feedRow(Lists<Object> row) {
     // if (this.rowSize != null && this.rowSize != row.size())
     // throw new RuntimeException("Rows are expected to have " + this.rowSize + "
@@ -527,12 +540,12 @@ public class DataFrame implements DFColumnListener {
     public DataFrame print(String title, Integer noOfRows) {
         Lists<Integer> columnPaddings = Lists.empty();
         Lists<String> columns = this.columns.mapIndexed((idx, col) -> {
-            Lists<DFValue> columnValues = this.getColumn(idx);
+            Lists<DFValue> columnValues = this.getColumnValues(idx);
             Lists<Integer> maxColumnSizes = columnValues.filter(dfValue -> !dfValue.isNull())
                     .map(dfValue -> dfValue.toString().length()).sort(Integer::compareTo);
             int maxLength = maxColumnSizes.isEmpty() ? 0 : maxColumnSizes.last();
             maxLength = Math.max(maxLength,
-                    this.columns.get(idx).getCast().getPrintableName(this.getColumn(idx)).length());
+                    this.columns.get(idx).getCast().getPrintableName(this.getColumnValues(idx)).length());
 
             maxLength = Math.max(maxLength, col.getName().length());
             int padding = Math.max(5, maxLength);
@@ -548,8 +561,8 @@ public class DataFrame implements DFColumnListener {
         }
         String types = "| " + this.columns
                 .mapIndexed((idx,
-                        col) -> Strings.rightPad(col.getCast().getPrintableName(this.getColumn(idx)),
-                                columnPaddings.get(idx), " ") + " | ")
+                             col) -> Strings.rightPad(col.getCast().getPrintableName(this.getColumnValues(idx)),
+                        columnPaddings.get(idx), " ") + " | ")
                 .join("");
         System.out.println(bars);
         System.out.println(join);
@@ -589,7 +602,7 @@ public class DataFrame implements DFColumnListener {
         return s;
     }
 
-    public Lists<DFValue> getColumn(String column) {
+    public Lists<DFValue> getColumnValues(String column) {
         Integer idx = this.name2column.get(column).getIndex(); // Fix: Use name2column and getIndex()
         return this.t.map(row -> row.get(idx));
     }
@@ -603,7 +616,7 @@ public class DataFrame implements DFColumnListener {
         return this.name2column.get(column).getIndex();
     }
 
-    public Lists<DFValue> getColumn(Integer idx) {
+    public Lists<DFValue> getColumnValues(Integer idx) {
         return this.t.map(row -> row.get(idx));
     }
 
@@ -686,7 +699,7 @@ public class DataFrame implements DFColumnListener {
     }
 
     public DataFrame computeColumns(Lists<String> columnNames, Integer columnIndex,
-            ActionFunction<DFRow, Lists<Object>> f) {
+                                    ActionFunction<DFRow, Lists<Object>> f) {
         Checks.check("No column names provided.", () -> columnNames != null && columnNames.notEmpty());
         Checks.check("Column name is null.", () -> columnNames.allMatch(Objects::nonNull));
         Lists<Lists<Object>> columnValues = this.t.mapIndexed((idx, dfRow) -> {

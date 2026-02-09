@@ -2,6 +2,9 @@ package fun.with.unstable;
 
 import fun.with.Lists;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.BinaryOperator;
@@ -9,13 +12,15 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collector;
 
-
 public class TaskCollector<Start, Target> implements Collector<Object, Lists<Target>, Lists<Target>> {
 
-    private final Lists<TaskFailure<Start>> failures = Lists.empty();
+    // List of failures collected during the stream operation.
+    // Using Collections.synchronizedList because the accumulator is called
+    // concurrently in parallel streams.
+    private final List<TaskFailure<Start>> failures = Collections.synchronizedList(new ArrayList<>());
 
     public Lists<TaskFailure<Start>> getFailures() {
-        return failures;
+        return Lists.from(failures);
     }
 
     static void main() {
@@ -25,7 +30,6 @@ public class TaskCollector<Start, Target> implements Collector<Object, Lists<Tar
                 .collect(new TaskCollector<>());
         System.out.println(collect);
     }
-
 
     @Override
     public Supplier<Lists<Target>> supplier() {

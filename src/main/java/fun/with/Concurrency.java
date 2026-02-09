@@ -4,7 +4,10 @@ import fun.with.annotations.Unstable;
 import fun.with.interfaces.CollectionLike;
 import fun.with.unstable.*;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 
 @Unstable
 public class Concurrency<Start, Target> {
@@ -14,6 +17,7 @@ public class Concurrency<Start, Target> {
     private final TaskCollector<Start, Target> taskCollector = new TaskCollector<>();
     private final Lists<TaskFailureHandler<Start>> failureHandles = Lists.empty();
     private final Lists<TasksFailureHandler<Start>> generalFailureHandlers = Lists.empty();
+    private final List<TaskFailure<Start>> unhandledErrors = Collections.synchronizedList(new ArrayList<>());
 
     private Concurrency(TaskBox<Start, Target> taskBox, Lists<Start> elements) {
         this.elements = elements;
@@ -87,48 +91,79 @@ public class Concurrency<Start, Target> {
                     try {
                         return this.taskBox.map(start);
                     } catch (Exception e) {
-                        TaskFailure<Start> failure = new TaskFailure<>(start, e);
-                        // todo this will throw RTEs on failure
-                        this.failureHandles.forEach(h -> h.performAction(failure));
+                        // ActionFunction/ActionConsumer wrap exceptions in RuntimeException.
+                        // We unwrap one level if it's such a wrapper.
+                        Throwable cause = (e instanceof RuntimeException && e.getCause() != null) ? e.getCause() : e;
+                        TaskFailure<Start> failure = new TaskFailure<>(start,
+                                (cause instanceof Exception) ? (Exception) cause : e);
+
+                        if (this.failureHandles.isEmpty()) {
+                            this.unhandledErrors.add(failure);
+                        } else {
+                            this.failureHandles.forEach(h -> {
+                                try {
+                                    h.performAction(failure);
+                                } catch (Exception ex) {
+                                    Throwable innerCause = (ex instanceof RuntimeException && ex.getCause() != null)
+                                            ? ex.getCause()
+                                            : ex;
+                                    this.unhandledErrors.add(new TaskFailure<>(start,
+                                            (innerCause instanceof Exception) ? (Exception) innerCause : ex));
+                                }
+                            });
+                        }
                         return failure;
                     }
                 })
                 .collect(this.taskCollector);
-        // todo this will throw RTEs on failure
-        this.generalFailureHandlers.forEach(handle -> handle.accept(this.taskCollector.getFailures()));
+        this.generalFailureHandlers.forEach(handle -> {
+            try {
+                handle.accept(this.taskCollector.getFailures());
+            } catch (Exception ex) {
+                Throwable innerCause = (ex instanceof RuntimeException && ex.getCause() != null) ? ex.getCause() : ex;
+                this.unhandledErrors
+                        .add(new TaskFailure<>(null, (innerCause instanceof Exception) ? (Exception) innerCause : ex));
+            }
+        });
         return successful;
+    }
+
+    public Lists<TaskFailure<Start>> getUnhandledErrors() {
+        return Lists.from(this.unhandledErrors);
     }
 
     static void main() {
         Lists<Integer> ls = Lists.of(1, 2, 3, 0);
-//        Concurrency<Integer, Long> concurrency = Concurrency.initialize(ls, Task.of(Integer.class, i -> i.toString())
-//                        .then(s -> s + s)
-//                        .then(s -> {
-//                            System.out.println("Task in " + Thread.currentThread().getName());
-//                            return s;
-//                        })
-//                        .then(Long::parseLong)
-//                        .then(l -> l / l))
-//                .handleFailure(f -> {
-//                    System.out.println("failure handle in " + Thread.currentThread().getName() + ". Value was " + f.start());
-//                });
-//        Lists<Long> converted = concurrency.map();
-//        System.out.println(converted);
+        // Concurrency<Integer, Long> concurrency = Concurrency.initialize(ls,
+        // Task.of(Integer.class, i -> i.toString())
+        // .then(s -> s + s)
+        // .then(s -> {
+        // System.out.println("Task in " + Thread.currentThread().getName());
+        // return s;
+        // })
+        // .then(Long::parseLong)
+        // .then(l -> l / l))
+        // .handleFailure(f -> {
+        // System.out.println("failure handle in " + Thread.currentThread().getName() +
+        // ". Value was " + f.start());
+        // });
+        // Lists<Long> converted = concurrency.map();
+        // System.out.println(converted);
 
         Concurrency<Integer, Integer> conc2 = Concurrency.initialize(Task.of(Integer.class, i -> i.toString())
-                        .then(s -> s + s + s)
-                        .then(Integer::parseInt)
-                        .then(i -> {
-                            if (i > 200)
-                                return i;
-                            return i / i;
-                        })
-                        .then(i -> {
-                            System.out.println("Success: " + i + " thread " + Thread.currentThread().getName());
-                            return i;
-                        }).consume(i -> {
-                            System.out.println("CONSUME " + i + " thread " + Thread.currentThread().getName());
-                        }))
+                .then(s -> s + s + s)
+                .then(Integer::parseInt)
+                .then(i -> {
+                    if (i > 200)
+                        return i;
+                    return i / i;
+                })
+                .then(i -> {
+                    System.out.println("Success: " + i + " thread " + Thread.currentThread().getName());
+                    return i;
+                }).consume(i -> {
+                    System.out.println("CONSUME " + i + " thread " + Thread.currentThread().getName());
+                }))
                 .handleFailures(failures -> failures.forEach(System.out::println))
                 .withElements(0);
         conc2.map();

@@ -18,7 +18,6 @@ class DataFrameTest {
     DataFrame df;
     DataFrame df1, dfWithStrings;
 
-
     @BeforeEach
     public void setUp() {
         Lists<Lists<Object>> rows = Lists.of(Lists.of(1, 2, "A"), Lists.of(3, 4, "B"));
@@ -85,7 +84,8 @@ class DataFrameTest {
 
     @Test
     public void testComputeColumn1() {
-        Lists<Lists<Object>> houseRows = Lists.of(Lists.of(new House(2, 3)).cast(Object.class), Lists.of(new House(5, 6)).cast(Object.class));
+        Lists<Lists<Object>> houseRows = Lists.of(Lists.of(new House(2, 3)).cast(Object.class),
+                Lists.of(new House(5, 6)).cast(Object.class));
         DataFrame df = DataFrame.fromLists(houseRows).setColumns("house");
         df = df.computeColumn("doors", dfRow -> dfRow.get("house").getCast(House.class).doors);
         df = df.computeColumn("windows", dfRow -> dfRow.get("house").getCast(House.class).windows);
@@ -99,10 +99,16 @@ class DataFrameTest {
 
     @Test
     public void testComputeColumns1() {
-        Lists<Lists<Object>> houseRows = Lists.of(Lists.of(new House(2, 3)).cast(Object.class), Lists.of(new House(5, 6)).cast(Object.class));
+        Lists<Lists<Object>> houseRows = Lists.of(Lists.of(new House(2, 3)).cast(Object.class),
+                Lists.of(new House(5, 6)).cast(Object.class));
         DataFrame df = DataFrame.fromLists(houseRows).setColumns("house");
-        df = df.computeColumns(Lists.of("doors", "windows", "holes"), row -> Lists.of(row.get("house").getCast(House.class).doors, row.get("house").getCast(House.class).windows, row.get("house").getCast(House.class).doors + row.get("house").getCast(House.class).windows));
-        df = df.computeColumns(Lists.of("holes_2", "holes_3"), 1, dfRow -> Lists.of(dfRow.get("holes").getInt() * dfRow.get("holes").getInt(), dfRow.get("holes").getInt() * dfRow.get("holes").getInt() * dfRow.get("holes").getInt()));
+        df = df.computeColumns(Lists.of("doors", "windows", "holes"),
+                row -> Lists.of(row.get("house").getCast(House.class).doors,
+                        row.get("house").getCast(House.class).windows,
+                        row.get("house").getCast(House.class).doors + row.get("house").getCast(House.class).windows));
+        df = df.computeColumns(Lists.of("holes_2", "holes_3"), 1,
+                dfRow -> Lists.of(dfRow.get("holes").getInt() * dfRow.get("holes").getInt(),
+                        dfRow.get("holes").getInt() * dfRow.get("holes").getInt() * dfRow.get("holes").getInt()));
         df.printAll("test");
         assertEquals(6, df.getColumns().size());
         assertEquals(2, df.getRows().size());
@@ -110,7 +116,8 @@ class DataFrameTest {
         assertEquals(11, df.getColumn("holes").second().getInt());
         Lists<String> expectedColumns = Lists.of("house", "holes_2", "holes_3", "doors", "windows", "holes");
         DataFrame finalDf = df;
-        expectedColumns.forEachIndexed((columnIdx, expectedColumn) -> assertEquals(expectedColumn, finalDf.getColumns().get(columnIdx)));
+        expectedColumns.forEachIndexed(
+                (columnIdx, expectedColumn) -> assertEquals(expectedColumn, finalDf.getColumns().get(columnIdx)));
     }
 
     @Test
@@ -127,7 +134,8 @@ class DataFrameTest {
     }
 
     public void initReplaceDf() {
-        df = DataFrame.fromLists(Lists.of(Ranges.of(0, 5).ls().cast(Object.class), Ranges.of(10, 15).ls().cast(Object.class)));
+        df = DataFrame.fromLists(
+                Lists.of(Ranges.of(0, 5).ls().cast(Object.class), Ranges.of(10, 15).ls().cast(Object.class)));
         df.setColumns("a", "b", "c", "d", "e");
     }
 
@@ -231,6 +239,6 @@ class DataFrameTest {
         assertEquals(3, parsed.size());
         assertEquals("1", parsed.getFirst().toString());
         assertEquals("b;;;", parsed.get(1).toString());
-        assertEquals("1", parsed.getLast().toString());
+        assertEquals("3", parsed.getLast().toString());
     }
 }

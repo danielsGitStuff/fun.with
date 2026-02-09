@@ -15,6 +15,7 @@ import fun.with.unstable.Try;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
@@ -86,8 +87,13 @@ public class DataFrame implements DFColumnListener {
     }
 
     public static DataFrame fromCsv(File csvFile, Character delimiter) {
-        Try.supply(() -> Files.readAllLines(csvFile.toPath()));
-        DataFrame df = Try.with(() -> Files.readAllLines(csvFile.toPath())).function(strings -> {
+        return fromCsv(csvFile, delimiter, StandardCharsets.UTF_8);
+    }
+
+    public static DataFrame fromCsv(File csvFile, Character delimiter, Charset charset) {
+        charset = charset == null ? StandardCharsets.UTF_8 : charset;
+        Charset finalCharset = charset;
+        DataFrame df = Try.with(() -> Files.readAllLines(csvFile.toPath(), finalCharset)).function(strings -> {
             Lists<Lists<Object>> ss = Lists.wrap(strings).map(s -> DataFrame.parseCsvLineFast(s, delimiter));
             Lists<String> columnNames = ss.first().map(Object::toString);
             Lists<Lists<Object>> content = ss.drop(1);
@@ -366,7 +372,7 @@ public class DataFrame implements DFColumnListener {
 
     public DFColumn getColumn(String columnName) {
         Checks.check("columnName is null", () -> columnName != null);
-        Checks.check("column '" + columnName + "' is unknown.", () -> !this.name2column.containsKey(columnName));
+        Checks.check("column '" + columnName + "' is unknown.", () -> this.name2column.containsKey(columnName));
         return this.name2column.get(columnName);
     }
 
@@ -742,7 +748,7 @@ public class DataFrame implements DFColumnListener {
     public void toCsv(File file, String delimiter) {
         delimiter = delimiter == null ? ";" : delimiter;
         StringBuilder b = new StringBuilder();
-        b.append(this.columns.join(delimiter)).append("\n");
+        b.append(this.columns.map(DFColumn::getName).join(delimiter)).append("\n");
         String finalDelimiter = delimiter;
         this.t.forEach(dfRow -> b
                 .append(dfRow.getValues().map(dfValue -> dfValue.isNull() ? "" : dfValue.getObject())

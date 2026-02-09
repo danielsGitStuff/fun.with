@@ -47,15 +47,15 @@ public class DFRow {
 
     public DFValue get(String columnName) {
         this.df.checkColumnNames(columnName);
-        int idx = this.df.column2index.get(columnName);
+        int idx = this.df.name2column.get(columnName).getIndex();
         return new DFValue(this, idx, this.values.get(idx));
     }
 
     public DFValue get(String columnName, Object defaultValue) {
-        if (!this.df.column2index.containsKey(columnName)) {
+        if (!this.df.name2column.containsKey(columnName)) {
             return new DFValue(this, -1, defaultValue);
         }
-        int idx = this.df.column2index.get(columnName);
+        int idx = this.df.name2column.get(columnName).getIndex();
         return new DFValue(this, idx, this.values.get(idx));
     }
 

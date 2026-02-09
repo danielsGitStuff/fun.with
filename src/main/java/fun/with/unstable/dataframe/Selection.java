@@ -15,7 +15,8 @@ import java.util.Set;
 /**
  * Filters a {@link DataFrame} column and row wise.
  * Can produce a new {@link DataFrame} based on that by calling df().
- * Keep in mind that selectedColumns does limit df() to return just those columns.
+ * Keep in mind that selectedColumns does limit df() to return just those
+ * columns.
  */
 @Unstable
 public class Selection {
@@ -29,7 +30,7 @@ public class Selection {
     }
 
     public static Selection of(DataFrame df, Lists<Integer> selectedColumnIndices) {
-        return new Selection(df, selectedColumnIndices.map(idx -> df.columns.get(idx)), null);
+        return new Selection(df, selectedColumnIndices.map(idx -> df.columns.get(idx).getName()), null);
     }
 
     public static Selection of(DataFrame df, Lists<String> selectedColumnNames, List<Integer> selectedRows) {
@@ -52,10 +53,11 @@ public class Selection {
      */
     public Selection filter(ActionPredicate<Lists<DFValue>> predicate) {
         List<Integer> newSelectedRows = new ArrayList<>();
-        Lists<Integer> columnIndices = this.selectedColumnNames.map(c -> this.df.column2index.get(c));
+        Lists<Integer> columnIndices = this.selectedColumnNames.map(c -> this.df.getColumnIndex(c));
         for (int rowIndex : this.selectedRows) {
             DFRow row = this.df.t.get(rowIndex);
             Lists<DFValue> selectedRow = columnIndices.map(row::get);
+
             boolean keep = predicate.test(selectedRow);
             if (keep)
                 newSelectedRows.add(rowIndex);
@@ -80,7 +82,8 @@ public class Selection {
 
     public Selection filterIndexed(ActionBiPredicate<Integer, Lists<DFValue>> predicate) {
         List<Integer> newSelectedRows = new ArrayList<>();
-        Lists<Integer> columnIndices = this.selectedColumnNames.map(c -> this.df.column2index.get(c));
+        Lists<Integer> columnIndices = this.selectedColumnNames.map(c -> this.df.getColumnIndex(c));
+
         for (int rowIndex : this.selectedRows) {
             DFRow row = this.df.t.get(rowIndex);
             Lists<DFValue> selectedRow = columnIndices.map(row::get);
@@ -98,22 +101,25 @@ public class Selection {
      * @return
      */
     public DataFrame df() {
-        Set<Integer> keepColumnIndices = this.selectedColumnNames.map(this.df.column2index::get).sets().get();
-        Lists<DFRow> t = this.getRows().mapIndexed((idx,dfRow) -> new DFRow(idx).
+        Set<Integer> keepColumnIndices = this.selectedColumnNames.map(this.df::getColumnIndex).sets().get();
+        Lists<DFRow> t = this.getRows().mapIndexed((idx, dfRow) -> new DFRow(idx).
+
                 setValues(dfRow.getValues()
                         .filterIndexed((idxx, dfValue) -> keepColumnIndices.contains(idxx))
                         .map(DFValue::getObject)));
-        Sets<String> selectedNoNumberColumns = this.selectedColumnNames.filter(c -> this.df.getNoNumberColumns().contains(c)).sets();
+        Sets<String> selectedNoNumberColumns = this.selectedColumnNames
+                .filter(c -> this.df.getNoNumberColumns().contains(c)).sets();
         DataFrame df = new DataFrame(t).setColumns(selectedColumnNames).setNoNumberColumns(selectedNoNumberColumns);
         t.forEach(dfRow -> dfRow.setDf(df));
         return df;
     }
 
-    public Lists<DFRow> getRows(){
+    public Lists<DFRow> getRows() {
         Lists<DFRow> t = Lists.empty();
         List<Integer> indices = new ArrayList<>();
         int idx = 0;
-        Lists<Integer> selectedColumnIndices = this.selectedColumnNames.map(c -> this.df.column2index.get(c));
+        Lists<Integer> selectedColumnIndices = this.selectedColumnNames.map(c -> this.df.getColumnIndex(c));
+
         for (int rowIndex : this.selectedRows) {
             DFRow row = this.df.t.get(rowIndex);
             t.add(row);
@@ -128,8 +134,9 @@ public class Selection {
         for (int rowIndex : this.selectedRows) {
             DFRow row = new DFRow(rowIndex);
             for (String column : this.selectedColumnNames.get()) {
-                Integer columnIdx = this.df.column2index.get(column);
+                Integer columnIdx = this.df.getColumnIndex(column);
                 DFValue o = this.df.t.get(rowIndex).get(columnIdx);
+
                 row.addValue(o.getObject());
             }
             int contentHash = row.contentHash();
@@ -143,12 +150,14 @@ public class Selection {
 
     /**
      * Will keep the first rows which are unique by the given columns.
+     * 
      * @param columns
      * @return
      */
     public Selection unique(String... columns) {
-        Lists<Integer> filterColumnIndices = Lists.of(columns).map(s -> this.df.column2index.get(s));
+        Lists<Integer> filterColumnIndices = Lists.of(columns).map(s -> this.df.getColumnIndex(s));
         Sets<Integer> contentHashes = Sets.empty();
+
         List<Integer> selectedRows = new ArrayList<>();
         for (int rowIndex : this.selectedRows) {
             DFRow row = new DFRow(rowIndex);
@@ -166,8 +175,9 @@ public class Selection {
     }
 
     public Selection sort(Comparator<Lists<DFValue>> comparator) {
-        Lists<Integer> columnIndices = this.selectedColumnNames.map(c -> this.df.column2index.get(c));
+        Lists<Integer> columnIndices = this.selectedColumnNames.map(c -> this.df.getColumnIndex(c));
         List<Integer> newSelectedRows = new ArrayList<>(this.selectedRows);
+
         newSelectedRows.sort((i1, i2) -> {
             DFRow row1 = Selection.this.df.getRows().get(i1);
             Lists<DFValue> values1 = columnIndices.map(row1::get);

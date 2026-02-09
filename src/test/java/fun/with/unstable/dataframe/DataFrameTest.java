@@ -234,11 +234,30 @@ class DataFrameTest {
     @Test
     public void parseFile3() throws Exception {
         final String line = "1;\"b;;;\";3";
-        List<Object> parsed = DataFrame.parseCsvLineFast(line, ';');
+        Lists<Object> parsed = DataFrame.parseCsvLineFast(line, ';');
         System.out.println("DataFrameTest.parseFile3");
         assertEquals(3, parsed.size());
-        assertEquals("1", parsed.getFirst().toString());
+        assertEquals("1", parsed.first().toString());
         assertEquals("b;;;", parsed.get(1).toString());
-        assertEquals("3", parsed.getLast().toString());
+        assertEquals("3", parsed.last().toString());
+
+    }
+
+    @Test
+    public void testNoAutocast() {
+        Lists<Lists<Object>> rows = Lists.of(Lists.of("1", "2"), Lists.of("3", "4"));
+        Lists<DFRow> dfRows = rows.mapIndexed((idx, ls) -> new DFRow(idx).setValues(ls));
+        DataFrame df = new DataFrame(dfRows, false);
+
+        System.out.println("DataFrameTest.testNoAutocast");
+        df.print();
+
+        Object val = df.getColumn(0).first().getObject();
+        assertTrue(val instanceof String);
+        assertEquals("1", val);
+
+        Object val2 = df.getColumn(1).last().getObject();
+        assertTrue(val2 instanceof String);
+        assertEquals("4", val2);
     }
 }

@@ -27,16 +27,13 @@ import java.util.concurrent.Future;
 @Unstable
 public class DataFrame {
     Lists<DFRow> t;
-    Lists<String> columns;
+    Lists<DFColumn> columns;
+    Maps<String, DFColumn> name2column;
     Integer rowSize;
-
-    Maps<String, Integer> column2index;
 
     private Sets<Integer> noNumberColumnIndices = Sets.empty();
     private Sets<String> noNumberColumns = Sets.empty();
     List<Integer> indices = new ArrayList<>();
-    private Lists<ColumnCast> columnCasts = Lists.empty();
-
 
     /**
      * @param t each item in t is a row in a table
@@ -45,62 +42,79 @@ public class DataFrame {
         Lists<DFRow> rows = t.mapIndexed((idx, ls) -> new DFRow(idx).setValues(ls));
         DataFrame df = new DataFrame(rows);
         df.t.forEach(r -> r.setDf(df));
-        df.initColumns();
         return df;
     }
 
     DataFrame(Lists<DFRow> rows) {
+        this(rows, true);
+    }
+
+    DataFrame(Lists<DFRow> rows, boolean autocast) {
         this.rowSize = DataFrame.checkTable(rows);
         Lists<DFRow> columnWise = DataFrame.transpose(rows);
         Lists<DFRow> castedColumnWise = Lists.empty();
-        for (DFRow column : columnWise.get()) {
-            Pair<ColumnCast, DFRow> casted = column.cast();
-            castedColumnWise.add(casted.v());
-            this.columnCasts.add(casted.k());
+        Lists<ColumnCast> casts = Lists.empty();
+        if (autocast) {
+            for (DFRow column : columnWise.get()) {
+                Pair<ColumnCast, DFRow> casted = column.cast();
+                castedColumnWise.add(casted.v());
+                casts.add(casted.k());
+            }
+        } else {
+            castedColumnWise = columnWise;
+            // distinct casts for each column not supported yet for non-autocast
+            casts = Ranges.of(this.rowSize).ls().map(i -> new ColumnCast.ObjectCast());
         }
         this.t = DataFrame.transpose(castedColumnWise);
         this.t.forEach(row -> row.setDf(this));
-        this.initColumns();
+        this.initColumns(casts);
     }
 
-    private void initColumns() {
+    private void initColumns(Lists<ColumnCast> casts) {
         if (this.rowSize > 0)
-            this.columns = Ranges.of(this.rowSize).ls().map(i -> "Column" + i);
+            this.columns = Ranges.of(this.rowSize).ls().map(i -> new DFColumn("Column" + i, i, casts.get(i)));
         else
             this.columns = Lists.empty();
-        this.column2index = this.columns.associateIndexed((idx, c) -> Pair.of(c, idx));
+        this.updateName2Column();
+    }
+
+    private void updateName2Column() {
+        this.name2column = this.columns.associate(c -> Pair.of(c.getName(), c));
     }
 
     public static DataFrame fromCsv(File csvFile, Character delimiter) {
         Try.supply(() -> Files.readAllLines(csvFile.toPath()));
         DataFrame df = Try.with(() -> Files.readAllLines(csvFile.toPath())).function(strings -> {
-                    Lists<Lists<Object>> ss = Lists.wrap(strings).map(s -> DataFrame.parseCsvLineFast(s, delimiter));
-                    Lists<String> columnNames = ss.first().map(Object::toString);
-                    Lists<Lists<Object>> content = ss.drop(1);
-                    content.map(os -> os.addAll(columnNames.size() - os.size() > 0 ? Ranges.of(columnNames.size() - os.size()).ls().map(x -> null) : Lists.empty())); // fill up missing values
-                    DataFrame d = DataFrame.fromLists(content).setColumns(columnNames);
-                    return d;
-                }
-        );
+            Lists<Lists<Object>> ss = Lists.wrap(strings).map(s -> DataFrame.parseCsvLineFast(s, delimiter));
+            Lists<String> columnNames = ss.first().map(Object::toString);
+            Lists<Lists<Object>> content = ss.drop(1);
+            content.map(os -> os.addAll(
+                    columnNames.size() - os.size() > 0 ? Ranges.of(columnNames.size() - os.size()).ls().map(x -> null)
+                            : Lists.empty())); // fill up missing values
+            DataFrame d = DataFrame.fromLists(content).setColumns(columnNames);
+            return d;
+        });
         return df;
     }
 
     public static DataFrame fromCsv2(File csvFile, String delimiter) {
         DataFrame df = Try.with(() -> TextReader.read(csvFile)).function(lines -> {
-                    Lists<String> columnNames = Lists.of(lines.first().split(delimiter));
-                    Lists<String> body = lines.drop(1);
-                    Lists<Lists<Object>> content = body.map(s -> Lists.of(s.split(delimiter)).cast(Object.class));
-                    content.map(os -> os.addAll(columnNames.size() - os.size() > 0 ? Ranges.of(columnNames.size() - os.size()).ls().map(x -> null) : Lists.empty())); // fill up missing values
-                    if (content.notEmpty()) {
-                        int actualColumnSize = content.first().size();
-                        if (columnNames.size() < actualColumnSize) {
-                            Ranges.of(1, columnNames.size() - actualColumnSize + 1).forEach(i -> columnNames.add("unknown_" + i));
-                        }
-                    }
-                    DataFrame d = DataFrame.fromLists(content).setColumns(columnNames);
-                    return d;
+            Lists<String> columnNames = Lists.of(lines.first().split(delimiter));
+            Lists<String> body = lines.drop(1);
+            Lists<Lists<Object>> content = body.map(s -> Lists.of(s.split(delimiter)).cast(Object.class));
+            content.map(os -> os.addAll(
+                    columnNames.size() - os.size() > 0 ? Ranges.of(columnNames.size() - os.size()).ls().map(x -> null)
+                            : Lists.empty())); // fill up missing values
+            if (content.notEmpty()) {
+                int actualColumnSize = content.first().size();
+                if (columnNames.size() < actualColumnSize) {
+                    Ranges.of(1, columnNames.size() - actualColumnSize + 1)
+                            .forEach(i -> columnNames.add("unknown_" + i));
                 }
-        );
+            }
+            DataFrame d = DataFrame.fromLists(content).setColumns(columnNames);
+            return d;
+        });
         return df;
     }
 
@@ -160,7 +174,7 @@ public class DataFrame {
             if (iDelim > 0) {
                 int iQ = line.indexOf(Q, currentIndex);
                 if (iQ == currentIndex) {
-                    currentIndex++;  // skip quote
+                    currentIndex++; // skip quote
                     int nextQ = line.indexOf(Q, iQ + 1);
                     if (nextQ > 0) {
                         if (line.charAt(nextQ - 1) == BACKSLASH) {
@@ -186,41 +200,42 @@ public class DataFrame {
 
     public static DataFrame fromCsv3(File csvFile, Character delimiter) {
         DataFrame df = Try.with(() -> TextReader.read(csvFile)).function(lines -> {
-                    Lists<String> columnNames = DataFrame.parseCsvLine(lines.first(), delimiter).map(Object::toString);
-                    Lists<String> body = lines.drop(1);
-                    Lists<Lists<Object>> content = body.map(line -> DataFrame.parseCsvLine(line, delimiter));
-                    content.map(os -> os.addAll(columnNames.size() - os.size() > 0 ? Ranges.of(columnNames.size() - os.size()).ls().map(x -> null) : Lists.empty())); // fill up missing values
-                    DataFrame d = DataFrame.fromLists(content).setColumns(columnNames);
-                    return d;
-                }
-        );
+            Lists<String> columnNames = DataFrame.parseCsvLine(lines.first(), delimiter).map(Object::toString);
+            Lists<String> body = lines.drop(1);
+            Lists<Lists<Object>> content = body.map(line -> DataFrame.parseCsvLine(line, delimiter));
+            content.map(os -> os.addAll(
+                    columnNames.size() - os.size() > 0 ? Ranges.of(columnNames.size() - os.size()).ls().map(x -> null)
+                            : Lists.empty())); // fill up missing values
+            DataFrame d = DataFrame.fromLists(content).setColumns(columnNames);
+            return d;
+        });
         return df;
     }
 
     public static DataFrame fromCsv4(File csvFile, Character delimiter) {
         DataFrame df = Try.with(() -> TextReader.read(csvFile)).function(lines -> {
-                    ExecutorService executor = Executors.newFixedThreadPool(4);
+            ExecutorService executor = Executors.newFixedThreadPool(4);
 
-                    Lists<String> columnNames = DataFrame.parseCsvLine(lines.first(), delimiter).map(Object::toString);
-                    Lists<String> body = lines.drop(1);
-                    Lists<Lists<String>> partitioned = body.partition(4);
-                    Lists<Future<Lists<Lists<Object>>>> futures = partitioned.map(rows ->
-                            executor.submit(new Callable<Lists<Lists<Object>>>() {
-                                @Override
-                                public Lists<Lists<Object>> call() throws Exception {
-                                    Lists<Lists<Object>> map = rows.map(s -> DataFrame.parseCsvLine(s, delimiter));
-                                    return map;
-                                }
-                            })
-                    );
-                    executor.shutdown();
-                    Lists<Lists<Lists<Object>>> partitionedValues = futures.map(Future::get);
-                    Lists<Lists<Object>> content = partitionedValues.flatMap(listsLists -> listsLists);
-                    content.map(os -> os.addAll(columnNames.size() - os.size() > 0 ? Ranges.of(columnNames.size() - os.size()).ls().map(x -> null) : Lists.empty())); // fill up missing values
-                    DataFrame d = DataFrame.fromLists(content).setColumns(columnNames);
-                    return d;
-                }
-        );
+            Lists<String> columnNames = DataFrame.parseCsvLine(lines.first(), delimiter).map(Object::toString);
+            Lists<String> body = lines.drop(1);
+            Lists<Lists<String>> partitioned = body.partition(4);
+            Lists<Future<Lists<Lists<Object>>>> futures = partitioned
+                    .map(rows -> executor.submit(new Callable<Lists<Lists<Object>>>() {
+                        @Override
+                        public Lists<Lists<Object>> call() throws Exception {
+                            Lists<Lists<Object>> map = rows.map(s -> DataFrame.parseCsvLine(s, delimiter));
+                            return map;
+                        }
+                    }));
+            executor.shutdown();
+            Lists<Lists<Lists<Object>>> partitionedValues = futures.map(Future::get);
+            Lists<Lists<Object>> content = partitionedValues.flatMap(listsLists -> listsLists);
+            content.map(os -> os.addAll(
+                    columnNames.size() - os.size() > 0 ? Ranges.of(columnNames.size() - os.size()).ls().map(x -> null)
+                            : Lists.empty())); // fill up missing values
+            DataFrame d = DataFrame.fromLists(content).setColumns(columnNames);
+            return d;
+        });
         return df;
     }
 
@@ -288,7 +303,8 @@ public class DataFrame {
     }
 
     /**
-     * Set column names. These can be used to identify get columns for later operations.
+     * Set column names. These can be used to identify get columns for later
+     * operations.
      *
      * @param columns
      * @return
@@ -296,22 +312,25 @@ public class DataFrame {
     public DataFrame setColumns(Lists<String> columns) {
         Lists<String> finalColumns = columns;
         if (this.columns != null && this.columns.notEmpty())
-            Checks.check("Wanted to set " + columns.size() + " column names but the Dataframe has " + this.columns.size(), () -> finalColumns.size() == this.columns.size());
+            Checks.check(
+                    "Wanted to set " + columns.size() + " column names but the Dataframe has " + this.columns.size(),
+                    () -> finalColumns.size() == this.columns.size());
         Maps<String, Integer> columnNameCounts = columns.associate(s -> Pair.of(s, 0));
         columns = columns.map(originalName -> {
             String c = originalName;
             int count = columnNameCounts.get(originalName);
             if (count > 0) {
                 String newColumnName = originalName + "_" + count;
-                System.out.println("Duplicate column name. Will rename '" + originalName + "' to '" + newColumnName + "'.");
+                System.out.println(
+                        "Duplicate column name. Will rename '" + originalName + "' to '" + newColumnName + "'.");
                 c = newColumnName;
             }
             count++;
             columnNameCounts.put(originalName, count);
             return c;
         });
-        this.columns = columns;
-        this.column2index = this.columns.associateIndexed((integer, s) -> Pair.of(s, integer));
+        this.columns = this.columns.mapIndexed((idx, c) -> c.withName(finalColumns.get(idx)));
+        this.updateName2Column();
         return this;
     }
 
@@ -320,16 +339,17 @@ public class DataFrame {
     }
 
     public Lists<String> getColumns() {
-        return columns;
+        return columns.map(DFColumn::getName);
     }
 
-    //    public DataFrame feedRow(Lists<Object> row) {
-//        if (this.rowSize != null && this.rowSize != row.size())
-//            throw new RuntimeException("Rows are expected to have " + this.rowSize + " columns. You tried to add one with " + row.size() + " columns");
-//        this.t.add(row);
-//        this.indices.add(this.indices.size());
-//        return this;
-//    }
+    // public DataFrame feedRow(Lists<Object> row) {
+    // if (this.rowSize != null && this.rowSize != row.size())
+    // throw new RuntimeException("Rows are expected to have " + this.rowSize + "
+    // columns. You tried to add one with " + row.size() + " columns");
+    // this.t.add(row);
+    // this.indices.add(this.indices.size());
+    // return this;
+    // }
     @Deprecated
     DataFrame setNoNumberColumnIndices(Sets<Integer> noNumberColumns) {
         this.noNumberColumnIndices = noNumberColumns;
@@ -338,7 +358,7 @@ public class DataFrame {
 
     public DataFrame setNoNumberColumns(Sets<String> noNumberColumns) {
         this.noNumberColumns = noNumberColumns;
-        this.noNumberColumnIndices = this.noNumberColumns.map(c -> this.column2index.get(c));
+        this.noNumberColumnIndices = this.noNumberColumns.map(c -> this.name2column.get(c).getIndex());
         return this;
     }
 
@@ -350,8 +370,8 @@ public class DataFrame {
         return this.noNumberColumnIndices;
     }
 
-    DataFrame setColumn2index(Maps<String, Integer> column2index) {
-        this.column2index = column2index;
+    DataFrame setName2Column(Maps<String, DFColumn> name2column) {
+        this.name2column = name2column;
         return this;
     }
 
@@ -412,14 +432,14 @@ public class DataFrame {
      */
     public void checkColumnNames(String... columnNames) {
         for (String c : columnNames) {
-            if (!this.column2index.containsKey(c))
+            if (!this.name2column.containsKey(c))
                 throw new RuntimeException("Unknown column '" + c + "'");
         }
     }
 
     public void checkColumnNames(CollectionLike<String, ?> columnNames) {
         for (String c : columnNames.getCollection()) {
-            if (!this.column2index.containsKey(c))
+            if (!this.name2column.containsKey(c))
                 throw new RuntimeException("Unknown column '" + c + "'");
         }
     }
@@ -434,7 +454,7 @@ public class DataFrame {
 
     public DataFrame drop(String... columns) {
         this.checkColumnNames(columns);
-        Sets<String> columnsToKeep = this.columns.sets().subtract(Sets.of(columns));
+        Sets<String> columnsToKeep = this.getColumns().sets().subtract(Sets.of(columns));
         return this.keep(columnsToKeep);
     }
 
@@ -443,13 +463,22 @@ public class DataFrame {
     }
 
     public DataFrame keep(Sets<String> columnsToKeepSet) {
-        this.checkColumnNames(columns);
-        Sets<Integer> columnIndicesToKeep = columnsToKeepSet.map(c -> this.column2index.get(c));
-        Lists<String> columnsToKeep = this.columns.filter(columnsToKeepSet::contains);
+        this.checkColumnNames(columnsToKeepSet);
+        Sets<Integer> columnIndicesToKeep = columnsToKeepSet.map(c -> this.name2column.get(c).getIndex());
+
+        Lists<DFColumn> columnsToKeep = this.columns.filter(c -> columnsToKeepSet.contains(c.getName()));
         Sets<String> noNumberColumnsToKeep = this.noNumberColumns.filter(columnsToKeepSet::contains);
         Lists<DFRow> newT = Lists.empty();
-        this.t.forEachIndexed((idx, row) -> newT.add(new DFRow(idx).setDf(this).setValues(row.filterIndexed((integer, o) -> columnIndicesToKeep.contains(integer)))));
-        return new DataFrame(newT).setColumns(columnsToKeep).setNoNumberColumns(noNumberColumnsToKeep);
+        this.t.forEachIndexed((idx, row) -> newT.add(new DFRow(idx).setDf(this)
+                .setValues(row.filterIndexed((integer, o) -> columnIndicesToKeep.contains(integer)))));
+        Lists<DFColumn> newColumns = columnsToKeep.mapIndexed((idx, c) -> c.withIndex(idx));
+        return new DataFrame(newT, false).setColumnsInternal(newColumns).setNoNumberColumns(noNumberColumnsToKeep);
+    }
+
+    private DataFrame setColumnsInternal(Lists<DFColumn> columns) {
+        this.columns = columns;
+        this.updateName2Column();
+        return this;
     }
 
     public Lists<DFRow> getRows() {
@@ -475,15 +504,18 @@ public class DataFrame {
 
     public DataFrame print(String title, Integer noOfRows) {
         Lists<Integer> columnPaddings = Lists.empty();
-        Lists<String> columns = this.columns.mapIndexed((idx, columnName) -> {
+        Lists<String> columns = this.columns.mapIndexed((idx, col) -> {
             Lists<DFValue> columnValues = this.getColumn(idx);
-            Lists<Integer> maxColumnSizes = columnValues.filter(dfValue -> !dfValue.isNull()).map(dfValue -> dfValue.toString().length()).sort(Integer::compareTo);
+            Lists<Integer> maxColumnSizes = columnValues.filter(dfValue -> !dfValue.isNull())
+                    .map(dfValue -> dfValue.toString().length()).sort(Integer::compareTo);
             int maxLength = maxColumnSizes.isEmpty() ? 0 : maxColumnSizes.last();
-            maxLength = Math.max(maxLength, this.columnCasts.get(idx).getPrintableName(this.getColumn(idx)).length());
-            maxLength = Math.max(maxLength, columnName.length());
+            maxLength = Math.max(maxLength,
+                    this.columns.get(idx).getCast().getPrintableName(this.getColumn(idx)).length());
+
+            maxLength = Math.max(maxLength, col.getName().length());
             int padding = Math.max(5, maxLength);
             columnPaddings.add(padding);
-            return Strings.rightPad(columnName, padding, " ");
+            return Strings.rightPad(col.getName(), padding, " ");
         });
         Lists<Integer> columnCharCount = columns.map(String::length);
         String join = "| " + columns.map(c -> c + " | ").join("");
@@ -492,7 +524,9 @@ public class DataFrame {
             System.out.println(bars);
             System.out.println(DataFrame.fillStr("| " + title + " ", bars.length() - 2) + "| ");
         }
-        String types = "| " + this.columnCasts.mapIndexed((idx, columnCast) -> Strings.rightPad(columnCast.getPrintableName(this.getColumn(idx)), columnPaddings.get(idx), " ") + " | ").join("");
+        String types = "| " + this.columns.mapIndexed((idx, col) -> Strings
+                .rightPad(col.getCast().getPrintableName(this.getColumn(idx)), columnPaddings.get(idx), " ") + " | ")
+                .join("");
         System.out.println(bars);
         System.out.println(join);
         System.out.println(bars);
@@ -508,7 +542,8 @@ public class DataFrame {
         }
         absIndices.forEachIndexed((count, rowIndex) -> {
             DFRow row = this.t.get(rowIndex);
-            String rowString = "| " + row.mapIndexed((colIdx, o) -> o.isNull() ? "null" : o.toString()).mapIndexed((colIdx, s) -> DataFrame.fillStr(s, columnCharCount.get(colIdx)) + " | ").join("");
+            String rowString = "| " + row.mapIndexed((colIdx, o) -> o.isNull() ? "null" : o.toString())
+                    .mapIndexed((colIdx, s) -> DataFrame.fillStr(s, columnCharCount.get(colIdx)) + " | ").join("");
             if (noOfRows != null && count == noOfRows - 2 && this.t.size() > noOfRows && join.length() > 5) {
                 String extraLine = DataFrame.fillStr("|    ....", join.length() - 2);
                 extraLine += "|";
@@ -531,17 +566,17 @@ public class DataFrame {
     }
 
     public Lists<DFValue> getColumn(String column) {
-        Integer idx = this.column2index.get(column);
+        Integer idx = this.name2column.get(column).getIndex(); // Fix: Use name2column and getIndex()
         return this.t.map(row -> row.get(idx));
     }
 
     public Boolean hasColumn(String column) {
-        return this.column2index.containsKey(column);
+        return this.name2column.containsKey(column);
     }
 
     public Integer getColumnIndex(String column) {
         this.checkColumnNames(column);
-        return this.column2index.get(column);
+        return this.name2column.get(column).getIndex();
     }
 
     public Lists<DFValue> getColumn(Integer idx) {
@@ -570,10 +605,11 @@ public class DataFrame {
         Checks.check("Column name is null", () -> columnName != null);
         Lists<X> columnValues = this.t.map(f::apply);
         Lists<DFRow> rows;
-        // these indices indicate where if column gets moved (if it already exists) or will be placed.
+        // these indices indicate where if column gets moved (if it already exists) or
+        // will be placed.
         Integer deletionIndex = null;
-        if (this.column2index.containsKey(columnName)) {
-            Integer existingIndex = this.column2index.get(columnName);
+        if (this.name2column.containsKey(columnName)) {
+            Integer existingIndex = this.name2column.get(columnName).getIndex();
             if (columnIndex == null || Objects.equals(existingIndex, columnIndex)) {
                 columnIndex = existingIndex + 1;
                 deletionIndex = existingIndex;
@@ -586,11 +622,12 @@ public class DataFrame {
                 }
             }
         } else {
-            columnIndex = columnIndex == null ? this.column2index.size() : columnIndex;
+            columnIndex = columnIndex == null ? this.name2column.size() : columnIndex;
         }
+
         final Integer finalDeletionIndex = deletionIndex;
         final Integer finalColumnIndex = columnIndex;
-        if (columnIndex >= this.column2index.size()) {
+        if (columnIndex >= this.name2column.size()) {
             rows = this.t.mapIndexed((rowIdx, dfRow) -> {
                 Lists<Object> values = dfRow.getValues().map(DFValue::getObject);
                 values.add(columnValues.get(rowIdx));
@@ -609,7 +646,8 @@ public class DataFrame {
                 return new DFRow(rowIdx).setValues(values);
             });
         }
-        Lists<String> columns = this.columns.copy().insert(columnIndex, columnName);
+        Lists<String> columns = this.getColumns().copy().insert(columnIndex, columnName);
+
         if (finalDeletionIndex != null) {
             columns.removeAt(finalDeletionIndex);
         }
@@ -620,18 +658,23 @@ public class DataFrame {
         return this.computeColumn(columnName, null, f);
     }
 
-    public DataFrame computeColumns(Lists<String> columnNames, Integer columnIndex, ActionFunction<DFRow, Lists<Object>> f) {
+    public DataFrame computeColumns(Lists<String> columnNames, Integer columnIndex,
+            ActionFunction<DFRow, Lists<Object>> f) {
         Checks.check("No column names provided.", () -> columnNames != null && columnNames.notEmpty());
         Checks.check("Column name is null.", () -> columnNames.allMatch(Objects::nonNull));
         Lists<Lists<Object>> columnValues = this.t.mapIndexed((idx, dfRow) -> {
             Lists<Object> values = f.apply(dfRow);
-            Checks.check("Expected " + columnNames.size() + " new values, but got " + values.size() + " instead. Happened while computing columns for row " + idx + ": " + dfRow, () -> values.size() == columnNames.size());
+            Checks.check(
+                    "Expected " + columnNames.size() + " new values, but got " + values.size()
+                            + " instead. Happened while computing columns for row " + idx + ": " + dfRow,
+                    () -> values.size() == columnNames.size());
             return values;
         });
         Lists<DFRow> rows;
-        columnIndex = columnIndex == null ? this.column2index.size() : columnIndex;
+        columnIndex = columnIndex == null ? this.name2column.size() : columnIndex;
         Integer finalColumnIndex = columnIndex;
-        if (columnIndex >= this.column2index.size()) {
+        if (columnIndex >= this.name2column.size()) {
+
             rows = this.t.mapIndexed((rowIdx, dfRow) -> {
                 Lists<Object> values = dfRow.getValues().map(DFValue::getObject);
                 values.addAll(columnValues.get(rowIdx));
@@ -645,7 +688,8 @@ public class DataFrame {
             });
         }
 
-        Lists<String> columns = this.columns.copy().insert(columnIndex, columnNames);
+        Lists<String> columns = this.getColumns().copy().insert(columnIndex, columnNames);
+
         return new DataFrame(rows).setColumns(columns);
     }
 
@@ -658,7 +702,9 @@ public class DataFrame {
         StringBuilder b = new StringBuilder();
         b.append(this.columns.join(delimiter)).append("\n");
         String finalDelimiter = delimiter;
-        this.t.forEach(dfRow -> b.append(dfRow.getValues().map(dfValue -> dfValue.isNull() ? "" : dfValue.getObject()).join(finalDelimiter)).append("\n"));
+        this.t.forEach(dfRow -> b.append(
+                dfRow.getValues().map(dfValue -> dfValue.isNull() ? "" : dfValue.getObject()).join(finalDelimiter))
+                .append("\n"));
         try {
             if (!file.getParentFile().exists()) {
                 file.getParentFile().mkdirs();
@@ -675,23 +721,28 @@ public class DataFrame {
     }
 
     public DataFrame copy() {
-        return new DataFrame(this.getRows().mapIndexed((idx, dfRow) -> new DFRow(idx).setValues(dfRow.getValues().map(DFValue::getObject))));
+        return new DataFrame(this.getRows()
+                .mapIndexed((idx, dfRow) -> new DFRow(idx).setValues(dfRow.getValues().map(DFValue::getObject))));
     }
 
     public DataFrame addRow(Object... objs) {
         Checks.check("No values provided.", () -> objs != null && objs.length > 0);
         Checks.check("Wrong amount of values provided.", () -> objs.length == this.columns.size());
         Lists<Object> objects = Lists.of(objs);
-        Checks.check("Wrong type.", () -> objects.zip(this.columnCasts).forEach(p -> p.v().apply(p.k())).ok());
+        Checks.check("Wrong type.",
+                () -> objects.zip(this.columns.map(DFColumn::getCast)).forEach(p -> p.v().apply(p.k())).ok());
         this.t.add(new DFRow(this.t.size()).setValues(objects).setDf(this));
+
         return this;
     }
 
     public DataFrame addRow(Lists<Object> objects) {
         Checks.check("No values provided.", () -> objects != null && objects.notEmpty());
         Checks.check("Wrong amount of values provided.", () -> objects.size() == this.columns.size());
-        Checks.check("Wrong type.", () -> objects.zip(this.columnCasts).forEach(p -> p.v().apply(p.k())).ok());
+        Checks.check("Wrong type.",
+                () -> objects.zip(this.columns.map(DFColumn::getCast)).forEach(p -> p.v().apply(p.k())).ok());
         this.t.add(new DFRow(this.t.size()).setValues(objects).setDf(this));
+
         return this;
     }
 }

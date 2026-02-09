@@ -260,4 +260,20 @@ class DataFrameTest {
         assertTrue(val2 instanceof String);
         assertEquals("4", val2);
     }
+
+    @Test
+    public void testColumnRenaming() {
+        Lists<Lists<Object>> rows = Lists.of(Lists.of(1, 2), Lists.of(3, 4));
+        DataFrame df = DataFrame.fromLists(rows).setColumnNames("a", "b");
+
+        // Rename "a" to "alpha"
+        df.getColumns().get(0).setName("alpha");
+
+        // Verify DataFrame updated its map
+        assertTrue(df.hasColumn("alpha"));
+        assertFalse(df.hasColumn("a"));
+
+        // Verify content access
+        assertEquals(1, df.getColumn("alpha").first().getInt());
+    }
 }

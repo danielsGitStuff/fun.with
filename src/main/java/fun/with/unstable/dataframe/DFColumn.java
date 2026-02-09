@@ -1,9 +1,13 @@
 package fun.with.unstable.dataframe;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class DFColumn {
-    private final String name;
+    private String name;
     private final int index;
     private final ColumnCast cast;
+    private final List<DFColumnListener> listeners = new ArrayList<>();
 
     public DFColumn(String name, int index, ColumnCast cast) {
         this.name = name;
@@ -13,6 +17,17 @@ public class DFColumn {
 
     public String getName() {
         return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+        for (DFColumnListener listener : listeners) {
+            listener.onColumnChanged(this);
+        }
+    }
+
+    public void addListener(DFColumnListener listener) {
+        this.listeners.add(listener);
     }
 
     public int getIndex() {

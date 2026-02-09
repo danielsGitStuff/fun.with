@@ -25,7 +25,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 @Unstable
-public class DataFrame {
+public class DataFrame implements DFColumnListener {
     Lists<DFRow> t;
     Lists<DFColumn> columns;
     Maps<String, DFColumn> name2column;
@@ -75,6 +75,7 @@ public class DataFrame {
             this.columns = Ranges.of(this.rowSize).ls().map(i -> new DFColumn("Column" + i, i, casts.get(i)));
         else
             this.columns = Lists.empty();
+        this.columns.forEach(c -> c.addListener(this));
         this.updateName2Column();
     }
 
@@ -334,6 +335,7 @@ public class DataFrame {
             return c;
         });
         this.columns = this.columns.mapIndexed((idx, c) -> c.withName(finalColumns.get(idx)));
+        this.columns.forEach(c -> c.addListener(this));
         this.updateName2Column();
         return this;
     }
@@ -491,8 +493,14 @@ public class DataFrame {
     private DataFrame setColumnsInternal(Lists<DFColumn> columns) {
 
         this.columns = columns;
+        this.columns.forEach(c -> c.addListener(this));
         this.updateName2Column();
         return this;
+    }
+
+    @Override
+    public void onColumnChanged(DFColumn column) {
+        this.updateName2Column();
     }
 
     public Lists<DFRow> getRows() {
@@ -538,7 +546,10 @@ public class DataFrame {
             System.out.println(bars);
             System.out.println(DataFrame.fillStr("| " + title + " ", bars.length() - 2) + "| ");
         }
-        String types = "| " + this.columns.mapIndexed((idx, col) -> Strings.rightPad(col.getCast().getPrintableName(this.getColumn(idx)), columnPaddings.get(idx), " ") + " | ")
+        String types = "| " + this.columns
+                .mapIndexed((idx,
+                        col) -> Strings.rightPad(col.getCast().getPrintableName(this.getColumn(idx)),
+                                columnPaddings.get(idx), " ") + " | ")
                 .join("");
         System.out.println(bars);
         System.out.println(join);
@@ -674,7 +685,8 @@ public class DataFrame {
         return this.computeColumn(columnName, null, f);
     }
 
-    public DataFrame computeColumns(Lists<String> columnNames, Integer columnIndex, ActionFunction<DFRow, Lists<Object>> f) {
+    public DataFrame computeColumns(Lists<String> columnNames, Integer columnIndex,
+            ActionFunction<DFRow, Lists<Object>> f) {
         Checks.check("No column names provided.", () -> columnNames != null && columnNames.notEmpty());
         Checks.check("Column name is null.", () -> columnNames.allMatch(Objects::nonNull));
         Lists<Lists<Object>> columnValues = this.t.mapIndexed((idx, dfRow) -> {
@@ -718,7 +730,9 @@ public class DataFrame {
         StringBuilder b = new StringBuilder();
         b.append(this.columns.join(delimiter)).append("\n");
         String finalDelimiter = delimiter;
-        this.t.forEach(dfRow -> b.append(dfRow.getValues().map(dfValue -> dfValue.isNull() ? "" : dfValue.getObject()).join(finalDelimiter))
+        this.t.forEach(dfRow -> b
+                .append(dfRow.getValues().map(dfValue -> dfValue.isNull() ? "" : dfValue.getObject())
+                        .join(finalDelimiter))
                 .append("\n"));
         try {
             if (!file.getParentFile().exists()) {

@@ -274,4 +274,22 @@ class DataFrameTest {
         // Verify content access
         assertEquals(1, df.getColumnValues("alpha").first().getInt());
     }
+
+    @Test
+    public void testIdx2ColumnMaintenance() {
+        Lists<Lists<Object>> rows = Lists.of(Lists.of(1, 2), Lists.of(3, 4));
+        DataFrame df = DataFrame.fromLists(rows).setColumnNames("a", "b");
+
+        // Verify initial state
+        assertEquals("a", df.getColumn(0).getName());
+        assertEquals("b", df.getColumn(1).getName());
+
+        // Rename "a" to "alpha"
+        df.getColumns().get(0).setName("alpha");
+
+        // Verify idx2column map is still correct (indices shouldn't change, but map
+        // should exist/work)
+        assertEquals("alpha", df.getColumn(0).getName());
+        assertEquals("b", df.getColumn(1).getName());
+    }
 }

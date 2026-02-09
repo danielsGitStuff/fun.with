@@ -77,11 +77,12 @@ public class DataFrame implements DFColumnListener {
         else
             this.columns = Lists.empty();
         this.columns.forEach(c -> c.addListener(this));
-        this.updateName2Column();
+        this.updateColumnMaps();
     }
 
-    private void updateName2Column() {
+    private void updateColumnMaps() {
         this.name2column = this.columns.associate(c -> Pair.of(c.getName(), c));
+        this.idx2column = this.columns.associate(c -> Pair.of(c.getIndex(), c));
     }
 
     public static DataFrame fromCsv(File csvFile, Character delimiter) {
@@ -337,7 +338,7 @@ public class DataFrame implements DFColumnListener {
         });
         this.columns = this.columns.mapIndexed((idx, c) -> c.withName(finalColumns.get(idx)));
         this.columns.forEach(c -> c.addListener(this));
-        this.updateName2Column();
+        this.updateColumnMaps();
         return this;
     }
 
@@ -359,7 +360,7 @@ public class DataFrame implements DFColumnListener {
 
     public DFColumn getColumn(Integer idx) {
         Checks.check("idx is null", () -> idx != null);
-        Checks.check("no column idx: " + idx, () -> !this.idx2column.containsKey(idx));
+        Checks.check("no column idx: " + idx, () -> this.idx2column.containsKey(idx));
         return this.idx2column.get(idx);
     }
 
@@ -507,13 +508,13 @@ public class DataFrame implements DFColumnListener {
 
         this.columns = columns;
         this.columns.forEach(c -> c.addListener(this));
-        this.updateName2Column();
+        this.updateColumnMaps();
         return this;
     }
 
     @Override
     public void onColumnChanged(DFColumn column) {
-        this.updateName2Column();
+        this.updateColumnMaps();
     }
 
     public Lists<DFRow> getRows() {
@@ -561,8 +562,8 @@ public class DataFrame implements DFColumnListener {
         }
         String types = "| " + this.columns
                 .mapIndexed((idx,
-                             col) -> Strings.rightPad(col.getCast().getPrintableName(this.getColumnValues(idx)),
-                        columnPaddings.get(idx), " ") + " | ")
+                        col) -> Strings.rightPad(col.getCast().getPrintableName(this.getColumnValues(idx)),
+                                columnPaddings.get(idx), " ") + " | ")
                 .join("");
         System.out.println(bars);
         System.out.println(join);
@@ -699,7 +700,7 @@ public class DataFrame implements DFColumnListener {
     }
 
     public DataFrame computeColumns(Lists<String> columnNames, Integer columnIndex,
-                                    ActionFunction<DFRow, Lists<Object>> f) {
+            ActionFunction<DFRow, Lists<Object>> f) {
         Checks.check("No column names provided.", () -> columnNames != null && columnNames.notEmpty());
         Checks.check("Column name is null.", () -> columnNames.allMatch(Objects::nonNull));
         Lists<Lists<Object>> columnValues = this.t.mapIndexed((idx, dfRow) -> {

@@ -91,7 +91,8 @@ public class DataFrame {
             content.map(os -> os.addAll(
                     columnNames.size() - os.size() > 0 ? Ranges.of(columnNames.size() - os.size()).ls().map(x -> null)
                             : Lists.empty())); // fill up missing values
-            DataFrame d = DataFrame.fromLists(content).setColumns(columnNames);
+            DataFrame d = DataFrame.fromLists(content).setColumnNames(columnNames);
+
             return d;
         });
         return df;
@@ -112,7 +113,8 @@ public class DataFrame {
                             .forEach(i -> columnNames.add("unknown_" + i));
                 }
             }
-            DataFrame d = DataFrame.fromLists(content).setColumns(columnNames);
+            DataFrame d = DataFrame.fromLists(content).setColumnNames(columnNames);
+
             return d;
         });
         return df;
@@ -206,7 +208,8 @@ public class DataFrame {
             content.map(os -> os.addAll(
                     columnNames.size() - os.size() > 0 ? Ranges.of(columnNames.size() - os.size()).ls().map(x -> null)
                             : Lists.empty())); // fill up missing values
-            DataFrame d = DataFrame.fromLists(content).setColumns(columnNames);
+            DataFrame d = DataFrame.fromLists(content).setColumnNames(columnNames);
+
             return d;
         });
         return df;
@@ -233,7 +236,8 @@ public class DataFrame {
             content.map(os -> os.addAll(
                     columnNames.size() - os.size() > 0 ? Ranges.of(columnNames.size() - os.size()).ls().map(x -> null)
                             : Lists.empty())); // fill up missing values
-            DataFrame d = DataFrame.fromLists(content).setColumns(columnNames);
+            DataFrame d = DataFrame.fromLists(content).setColumnNames(columnNames);
+
             return d;
         });
         return df;
@@ -309,7 +313,7 @@ public class DataFrame {
      * @param columns
      * @return
      */
-    public DataFrame setColumns(Lists<String> columns) {
+    public DataFrame setColumnNames(Lists<String> columns) {
         Lists<String> finalColumns = columns;
         if (this.columns != null && this.columns.notEmpty())
             Checks.check(
@@ -334,12 +338,20 @@ public class DataFrame {
         return this;
     }
 
-    public DataFrame setColumns(String... columns) {
-        return this.setColumns(Lists.of(columns));
+    public DataFrame setColumns(Lists<DFColumn> columns) {
+        return this.setColumnsInternal(columns);
     }
 
-    public Lists<String> getColumns() {
+    public DataFrame setColumnNames(String... columns) {
+        return this.setColumnNames(Lists.of(columns));
+    }
+
+    public Lists<String> getColumnNames() {
         return columns.map(DFColumn::getName);
+    }
+
+    public Lists<DFColumn> getColumns() {
+        return columns;
     }
 
     // public DataFrame feedRow(Lists<Object> row) {
@@ -454,7 +466,8 @@ public class DataFrame {
 
     public DataFrame drop(String... columns) {
         this.checkColumnNames(columns);
-        Sets<String> columnsToKeep = this.getColumns().sets().subtract(Sets.of(columns));
+        Sets<String> columnsToKeep = this.getColumnNames().sets().subtract(Sets.of(columns));
+
         return this.keep(columnsToKeep);
     }
 
@@ -472,10 +485,11 @@ public class DataFrame {
         this.t.forEachIndexed((idx, row) -> newT.add(new DFRow(idx).setDf(this)
                 .setValues(row.filterIndexed((integer, o) -> columnIndicesToKeep.contains(integer)))));
         Lists<DFColumn> newColumns = columnsToKeep.mapIndexed((idx, c) -> c.withIndex(idx));
-        return new DataFrame(newT, false).setColumnsInternal(newColumns).setNoNumberColumns(noNumberColumnsToKeep);
+        return new DataFrame(newT, false).setColumns(newColumns).setNoNumberColumns(noNumberColumnsToKeep);
     }
 
     private DataFrame setColumnsInternal(Lists<DFColumn> columns) {
+
         this.columns = columns;
         this.updateName2Column();
         return this;
@@ -595,9 +609,11 @@ public class DataFrame {
 
     public DataFrame addColumn(String columnName, Object value) {
         Lists<Lists<Object>> t = this.getRows().map(dfRow -> dfRow.getValues().map(DFValue::getObject));
-        Lists<String> columns = this.getColumns().add(columnName);
+        Lists<String> columns = this.getColumnNames().add(columnName);
+
         t.forEach(row -> row.add(value));
-        DataFrame df = DataFrame.fromLists(t).setColumns(columns);
+        DataFrame df = DataFrame.fromLists(t).setColumnNames(columns);
+
         return df;
     }
 
@@ -646,12 +662,13 @@ public class DataFrame {
                 return new DFRow(rowIdx).setValues(values);
             });
         }
-        Lists<String> columns = this.getColumns().copy().insert(columnIndex, columnName);
+        Lists<String> columns = this.getColumnNames().copy().insert(columnIndex, columnName);
 
         if (finalDeletionIndex != null) {
             columns.removeAt(finalDeletionIndex);
         }
-        return new DataFrame(rows).setColumns(columns);
+        return new DataFrame(rows).setColumnNames(columns);
+
     }
 
     public <X> DataFrame computeColumn(String columnName, ActionFunction<DFRow, X> f) {
@@ -688,9 +705,10 @@ public class DataFrame {
             });
         }
 
-        Lists<String> columns = this.getColumns().copy().insert(columnIndex, columnNames);
+        Lists<String> columns = this.getColumnNames().copy().insert(columnIndex, columnNames);
 
-        return new DataFrame(rows).setColumns(columns);
+        return new DataFrame(rows).setColumnNames(columns);
+
     }
 
     public DataFrame computeColumns(Lists<String> columnNames, ActionFunction<DFRow, Lists<Object>> f) {

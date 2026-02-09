@@ -21,7 +21,7 @@ class DataFrameTest {
     @BeforeEach
     public void setUp() {
         Lists<Lists<Object>> rows = Lists.of(Lists.of(1, 2, "A"), Lists.of(3, 4, "B"));
-        this.df = DataFrame.fromLists(rows).setColumns("n1", "n2", "s1");
+        this.df = DataFrame.fromLists(rows).setColumnNames("n1", "n2", "s1");
 
         Lists<Lists<Object>> t = Ranges.of(4).ls().map(i -> Ranges.of(i, i + 2).ls().cast(Object.class));
         df1 = DataFrame.fromLists(t);
@@ -86,7 +86,7 @@ class DataFrameTest {
     public void testComputeColumn1() {
         Lists<Lists<Object>> houseRows = Lists.of(Lists.of(new House(2, 3)).cast(Object.class),
                 Lists.of(new House(5, 6)).cast(Object.class));
-        DataFrame df = DataFrame.fromLists(houseRows).setColumns("house");
+        DataFrame df = DataFrame.fromLists(houseRows).setColumnNames("house");
         df = df.computeColumn("doors", dfRow -> dfRow.get("house").getCast(House.class).doors);
         df = df.computeColumn("windows", dfRow -> dfRow.get("house").getCast(House.class).windows);
         df = df.computeColumn("holes", dfRow -> dfRow.get("doors").getInt() + dfRow.get("windows").getInt());
@@ -101,7 +101,7 @@ class DataFrameTest {
     public void testComputeColumns1() {
         Lists<Lists<Object>> houseRows = Lists.of(Lists.of(new House(2, 3)).cast(Object.class),
                 Lists.of(new House(5, 6)).cast(Object.class));
-        DataFrame df = DataFrame.fromLists(houseRows).setColumns("house");
+        DataFrame df = DataFrame.fromLists(houseRows).setColumnNames("house");
         df = df.computeColumns(Lists.of("doors", "windows", "holes"),
                 row -> Lists.of(row.get("house").getCast(House.class).doors,
                         row.get("house").getCast(House.class).windows,
@@ -117,7 +117,7 @@ class DataFrameTest {
         Lists<String> expectedColumns = Lists.of("house", "holes_2", "holes_3", "doors", "windows", "holes");
         DataFrame finalDf = df;
         expectedColumns.forEachIndexed(
-                (columnIdx, expectedColumn) -> assertEquals(expectedColumn, finalDf.getColumns().get(columnIdx)));
+                (columnIdx, expectedColumn) -> assertEquals(expectedColumn, finalDf.getColumnNames().get(columnIdx)));
     }
 
     @Test
@@ -136,7 +136,7 @@ class DataFrameTest {
     public void initReplaceDf() {
         df = DataFrame.fromLists(
                 Lists.of(Ranges.of(0, 5).ls().cast(Object.class), Ranges.of(10, 15).ls().cast(Object.class)));
-        df.setColumns("a", "b", "c", "d", "e");
+        df.setColumnNames("a", "b", "c", "d", "e");
     }
 
     /**

@@ -109,7 +109,7 @@ public class Selection {
                         .map(DFValue::getObject)));
         Sets<String> selectedNoNumberColumns = this.selectedColumnNames
                 .filter(c -> this.df.getNoNumberColumns().contains(c)).sets();
-        DataFrame df = new DataFrame(t).setColumns(selectedColumnNames).setNoNumberColumns(selectedNoNumberColumns);
+        DataFrame df = new DataFrame(t).setColumnNames(selectedColumnNames).setNoNumberColumns(selectedNoNumberColumns);
         t.forEach(dfRow -> dfRow.setDf(df));
         return df;
     }

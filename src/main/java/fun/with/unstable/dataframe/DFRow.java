@@ -51,6 +51,12 @@ public class DFRow {
         return new DFValue(this, idx, this.values.get(idx));
     }
 
+    public DFValue get(DFColumn column) {
+        this.df.checkColumnNames(column.getName());
+        int idx = this.df.name2column.get(column.getName()).getIndex();
+        return new DFValue(this, idx, this.values.get(idx));
+    }
+
     public DFValue get(String columnName, Object defaultValue) {
         if (!this.df.name2column.containsKey(columnName)) {
             return new DFValue(this, -1, defaultValue);

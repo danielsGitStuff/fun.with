@@ -538,8 +538,7 @@ public class DataFrame {
             System.out.println(bars);
             System.out.println(DataFrame.fillStr("| " + title + " ", bars.length() - 2) + "| ");
         }
-        String types = "| " + this.columns.mapIndexed((idx, col) -> Strings
-                .rightPad(col.getCast().getPrintableName(this.getColumn(idx)), columnPaddings.get(idx), " ") + " | ")
+        String types = "| " + this.columns.mapIndexed((idx, col) -> Strings.rightPad(col.getCast().getPrintableName(this.getColumn(idx)), columnPaddings.get(idx), " ") + " | ")
                 .join("");
         System.out.println(bars);
         System.out.println(join);
@@ -675,8 +674,7 @@ public class DataFrame {
         return this.computeColumn(columnName, null, f);
     }
 
-    public DataFrame computeColumns(Lists<String> columnNames, Integer columnIndex,
-            ActionFunction<DFRow, Lists<Object>> f) {
+    public DataFrame computeColumns(Lists<String> columnNames, Integer columnIndex, ActionFunction<DFRow, Lists<Object>> f) {
         Checks.check("No column names provided.", () -> columnNames != null && columnNames.notEmpty());
         Checks.check("Column name is null.", () -> columnNames.allMatch(Objects::nonNull));
         Lists<Lists<Object>> columnValues = this.t.mapIndexed((idx, dfRow) -> {
@@ -720,8 +718,7 @@ public class DataFrame {
         StringBuilder b = new StringBuilder();
         b.append(this.columns.join(delimiter)).append("\n");
         String finalDelimiter = delimiter;
-        this.t.forEach(dfRow -> b.append(
-                dfRow.getValues().map(dfValue -> dfValue.isNull() ? "" : dfValue.getObject()).join(finalDelimiter))
+        this.t.forEach(dfRow -> b.append(dfRow.getValues().map(dfValue -> dfValue.isNull() ? "" : dfValue.getObject()).join(finalDelimiter))
                 .append("\n"));
         try {
             if (!file.getParentFile().exists()) {

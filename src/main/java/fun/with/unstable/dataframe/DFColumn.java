@@ -6,7 +6,7 @@ import java.util.List;
 public class DFColumn {
     private String name;
     private final int index;
-    private final ColumnCast cast;
+    private ColumnCast cast;
     private final List<DFColumnListener> listeners = new ArrayList<>();
 
     public DFColumn(String name, int index, ColumnCast cast) {
@@ -15,15 +15,21 @@ public class DFColumn {
         this.cast = cast;
     }
 
+    public DFColumn setCast(ColumnCast cast) {
+        this.cast = cast;
+        return this;
+    }
+
     public String getName() {
         return name;
     }
 
-    public void setName(String name) {
+    public DFColumn setName(String name) {
         this.name = name;
         for (DFColumnListener listener : listeners) {
             listener.onColumnChanged(this);
         }
+        return this;
     }
 
     public void addListener(DFColumnListener listener) {

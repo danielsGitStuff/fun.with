@@ -40,6 +40,9 @@ public class DFValue {
     }
 
     public Long getLong() {
+        if (this.object instanceof Integer) {
+            return ((Integer) this.object).longValue();
+        }
         return (Long) this.object;
     }
 

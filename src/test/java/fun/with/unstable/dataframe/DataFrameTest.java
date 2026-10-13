@@ -8,9 +8,7 @@ import org.junit.jupiter.api.Test;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.charset.Charset;
 import java.nio.file.Files;
-import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -18,11 +16,10 @@ class DataFrameTest {
     DataFrame df;
     DataFrame df1, dfWithStrings;
 
-
     @BeforeEach
     public void setUp() {
         Lists<Lists<Object>> rows = Lists.of(Lists.of(1, 2, "A"), Lists.of(3, 4, "B"));
-        this.df = DataFrame.fromLists(rows).setColumns("n1", "n2", "s1");
+        this.df = DataFrame.fromLists(rows).setColumnNames("n1", "n2", "s1");
 
         Lists<Lists<Object>> t = Ranges.of(4).ls().map(i -> Ranges.of(i, i + 2).ls().cast(Object.class));
         df1 = DataFrame.fromLists(t);
@@ -36,8 +33,8 @@ class DataFrameTest {
         System.out.println("DataFrameTest.computeColumn");
         df.checkColumnNames("n1", "n2", "sum", "s1");
         assertEquals(3, df.getColumnIndex("sum"));
-        assertEquals(3, df.getColumn("sum").get(0).getInt());
-        assertEquals(7, df.getColumn("sum").get(1).getInt());
+        assertEquals(3, df.getColumnValues("sum").get(0).getInt());
+        assertEquals(7, df.getColumnValues("sum").get(1).getInt());
     }
 
     @Test
@@ -46,8 +43,8 @@ class DataFrameTest {
         System.out.println("DataFrameTest.computeColumn");
         df.checkColumnNames("n1", "n2", "sum", "s1");
         assertEquals(2, df.getColumnIndex("sum"));
-        assertEquals(3, df.getColumn("sum").get(0).getInt());
-        assertEquals(7, df.getColumn("sum").get(1).getInt());
+        assertEquals(3, df.getColumnValues("sum").get(0).getInt());
+        assertEquals(7, df.getColumnValues("sum").get(1).getInt());
         df.printAll("sum");
     }
 
@@ -85,32 +82,40 @@ class DataFrameTest {
 
     @Test
     public void testComputeColumn1() {
-        Lists<Lists<Object>> houseRows = Lists.of(Lists.of(new House(2, 3)).cast(Object.class), Lists.of(new House(5, 6)).cast(Object.class));
-        DataFrame df = DataFrame.fromLists(houseRows).setColumns("house");
+        Lists<Lists<Object>> houseRows = Lists.of(Lists.of(new House(2, 3)).cast(Object.class),
+                Lists.of(new House(5, 6)).cast(Object.class));
+        DataFrame df = DataFrame.fromLists(houseRows).setColumnNames("house");
         df = df.computeColumn("doors", dfRow -> dfRow.get("house").getCast(House.class).doors);
         df = df.computeColumn("windows", dfRow -> dfRow.get("house").getCast(House.class).windows);
         df = df.computeColumn("holes", dfRow -> dfRow.get("doors").getInt() + dfRow.get("windows").getInt());
         df.printAll("test");
         assertEquals(4, df.getColumns().size());
         assertEquals(2, df.getRows().size());
-        assertEquals(5, df.getColumn("holes").first().getInt());
-        assertEquals(11, df.getColumn("holes").second().getInt());
+        assertEquals(5, df.getColumnValues("holes").first().getInt());
+        assertEquals(11, df.getColumnValues("holes").second().getInt());
     }
 
     @Test
     public void testComputeColumns1() {
-        Lists<Lists<Object>> houseRows = Lists.of(Lists.of(new House(2, 3)).cast(Object.class), Lists.of(new House(5, 6)).cast(Object.class));
-        DataFrame df = DataFrame.fromLists(houseRows).setColumns("house");
-        df = df.computeColumns(Lists.of("doors", "windows", "holes"), row -> Lists.of(row.get("house").getCast(House.class).doors, row.get("house").getCast(House.class).windows, row.get("house").getCast(House.class).doors + row.get("house").getCast(House.class).windows));
-        df = df.computeColumns(Lists.of("holes_2", "holes_3"), 1, dfRow -> Lists.of(dfRow.get("holes").getInt() * dfRow.get("holes").getInt(), dfRow.get("holes").getInt() * dfRow.get("holes").getInt() * dfRow.get("holes").getInt()));
+        Lists<Lists<Object>> houseRows = Lists.of(Lists.of(new House(2, 3)).cast(Object.class),
+                Lists.of(new House(5, 6)).cast(Object.class));
+        DataFrame df = DataFrame.fromLists(houseRows).setColumnNames("house");
+        df = df.computeColumns(Lists.of("doors", "windows", "holes"),
+                row -> Lists.of(row.get("house").getCast(House.class).doors,
+                        row.get("house").getCast(House.class).windows,
+                        row.get("house").getCast(House.class).doors + row.get("house").getCast(House.class).windows));
+        df = df.computeColumns(Lists.of("holes_2", "holes_3"), 1,
+                dfRow -> Lists.of(dfRow.get("holes").getInt() * dfRow.get("holes").getInt(),
+                        dfRow.get("holes").getInt() * dfRow.get("holes").getInt() * dfRow.get("holes").getInt()));
         df.printAll("test");
         assertEquals(6, df.getColumns().size());
         assertEquals(2, df.getRows().size());
-        assertEquals(5, df.getColumn("holes").first().getInt());
-        assertEquals(11, df.getColumn("holes").second().getInt());
+        assertEquals(5, df.getColumnValues("holes").first().getInt());
+        assertEquals(11, df.getColumnValues("holes").second().getInt());
         Lists<String> expectedColumns = Lists.of("house", "holes_2", "holes_3", "doors", "windows", "holes");
         DataFrame finalDf = df;
-        expectedColumns.forEachIndexed((columnIdx, expectedColumn) -> assertEquals(expectedColumn, finalDf.getColumns().get(columnIdx)));
+        expectedColumns.forEachIndexed(
+                (columnIdx, expectedColumn) -> assertEquals(expectedColumn, finalDf.getColumnNames().get(columnIdx)));
     }
 
     @Test
@@ -127,8 +132,9 @@ class DataFrameTest {
     }
 
     public void initReplaceDf() {
-        df = DataFrame.fromLists(Lists.of(Ranges.of(0, 5).ls().cast(Object.class), Ranges.of(10, 15).ls().cast(Object.class)));
-        df.setColumns("a", "b", "c", "d", "e");
+        df = DataFrame.fromLists(
+                Lists.of(Ranges.of(0, 5).ls().cast(Object.class), Ranges.of(10, 15).ls().cast(Object.class)));
+        df.setColumnNames("a", "b", "c", "d", "e");
     }
 
     /**
@@ -144,8 +150,8 @@ class DataFrameTest {
         assertEquals(1, changed.getColumnIndex("c"));
         assertEquals(3, changed.getColumnIndex("b"));
         assertEquals(4, changed.getColumnIndex("e"));
-        assertEquals(4, changed.getColumn(3).first().getInt());
-        assertEquals(14, changed.getColumn(3).second().getInt());
+        assertEquals(4, changed.getColumnValues(3).first().getInt());
+        assertEquals(14, changed.getColumnValues(3).second().getInt());
     }
 
     /**
@@ -161,8 +167,8 @@ class DataFrameTest {
         assertEquals(1, changed.getColumnIndex("d"));
         assertEquals(2, changed.getColumnIndex("b"));
         assertEquals(4, changed.getColumnIndex("e"));
-        assertEquals(6, changed.getColumn(1).first().getInt());
-        assertEquals(16, changed.getColumn(1).second().getInt());
+        assertEquals(6, changed.getColumnValues(1).first().getInt());
+        assertEquals(16, changed.getColumnValues(1).second().getInt());
     }
 
     /**
@@ -178,8 +184,8 @@ class DataFrameTest {
         assertEquals(3, changed.getColumnIndex("d"));
         assertEquals(1, changed.getColumnIndex("b"));
         assertEquals(4, changed.getColumnIndex("e"));
-        assertEquals(6, changed.getColumn(3).first().getInt());
-        assertEquals(16, changed.getColumn(3).second().getInt());
+        assertEquals(6, changed.getColumnValues(3).first().getInt());
+        assertEquals(16, changed.getColumnValues(3).second().getInt());
     }
 
     /**
@@ -196,8 +202,8 @@ class DataFrameTest {
         assertEquals(1, changed.getColumnIndex("b"));
         assertEquals(4, changed.getColumnIndex("e"));
         assertEquals(5, changed.getColumnIndex("ddd"));
-        assertEquals(6, changed.getColumn(5).first().getInt());
-        assertEquals(16, changed.getColumn(5).second().getInt());
+        assertEquals(6, changed.getColumnValues(5).first().getInt());
+        assertEquals(16, changed.getColumnValues(5).second().getInt());
     }
 
     private File writeTestFile(Lists<String> lines) throws IOException {
@@ -226,11 +232,64 @@ class DataFrameTest {
     @Test
     public void parseFile3() throws Exception {
         final String line = "1;\"b;;;\";3";
-        List<Object> parsed = DataFrame.parseCsvLineFast(line, ';');
+        Lists<Object> parsed = DataFrame.parseCsvLineFast(line, ';');
         System.out.println("DataFrameTest.parseFile3");
         assertEquals(3, parsed.size());
-        assertEquals("1", parsed.getFirst().toString());
+        assertEquals("1", parsed.first().toString());
         assertEquals("b;;;", parsed.get(1).toString());
-        assertEquals("1", parsed.getLast().toString());
+        assertEquals("3", parsed.last().toString());
+
+    }
+
+    @Test
+    public void testNoAutocast() {
+        Lists<Lists<Object>> rows = Lists.of(Lists.of("1", "2"), Lists.of("3", "4"));
+        Lists<DFRow> dfRows = rows.mapIndexed((idx, ls) -> new DFRow(idx).setValues(ls));
+        DataFrame df = new DataFrame(dfRows, false);
+
+        System.out.println("DataFrameTest.testNoAutocast");
+        df.print();
+
+        Object val = df.getColumnValues(0).first().getObject();
+        assertTrue(val instanceof String);
+        assertEquals("1", val);
+
+        Object val2 = df.getColumnValues(1).last().getObject();
+        assertTrue(val2 instanceof String);
+        assertEquals("4", val2);
+    }
+
+    @Test
+    public void testColumnRenaming() {
+        Lists<Lists<Object>> rows = Lists.of(Lists.of(1, 2), Lists.of(3, 4));
+        DataFrame df = DataFrame.fromLists(rows).setColumnNames("a", "b");
+
+        // Rename "a" to "alpha"
+        df.getColumns().get(0).setName("alpha");
+
+        // Verify DataFrame updated its map
+        assertTrue(df.hasColumn("alpha"));
+        assertFalse(df.hasColumn("a"));
+
+        // Verify content access
+        assertEquals(1, df.getColumnValues("alpha").first().getInt());
+    }
+
+    @Test
+    public void testIdx2ColumnMaintenance() {
+        Lists<Lists<Object>> rows = Lists.of(Lists.of(1, 2), Lists.of(3, 4));
+        DataFrame df = DataFrame.fromLists(rows).setColumnNames("a", "b");
+
+        // Verify initial state
+        assertEquals("a", df.getColumn(0).getName());
+        assertEquals("b", df.getColumn(1).getName());
+
+        // Rename "a" to "alpha"
+        df.getColumns().get(0).setName("alpha");
+
+        // Verify idx2column map is still correct (indices shouldn't change, but map
+        // should exist/work)
+        assertEquals("alpha", df.getColumn(0).getName());
+        assertEquals("b", df.getColumn(1).getName());
     }
 }

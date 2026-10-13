@@ -14,6 +14,21 @@ public abstract class ColumnCast implements Function<Object, Object> {
 
     public abstract String getPrintableName(Lists<DFValue> values);
 
+    public static class NullCast extends ColumnCast {
+
+        @Override
+        public String getPrintableName(Lists<DFValue> values) {
+            return "NULL";
+        }
+
+        @Override
+        public Object apply(Object o) {
+            if (o == null || (o instanceof String && ((String) o).isEmpty()))
+                return o;
+            throw new RuntimeException();
+        }
+    }
+
     public static class BooleanCast extends ColumnCast {
         private static final Function<String, Boolean> cStr2Bool = s -> {
             if ("true".equals(s) || "false".equals(s) || s.isEmpty())
@@ -124,5 +139,5 @@ public abstract class ColumnCast implements Function<Object, Object> {
         }
     }
 
-    public static Lists<ColumnCast> CASTS = Lists.of(new BooleanCast(), new IntCast(), new LongCast(), new DoubleCast(), new StringCast(), new ObjectCast());
+    public static Lists<ColumnCast> CASTS = Lists.of(new NullCast(), new BooleanCast(), new IntCast(), new LongCast(), new DoubleCast(), new StringCast(), new ObjectCast());
 }

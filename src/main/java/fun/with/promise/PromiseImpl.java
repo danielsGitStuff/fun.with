@@ -1,15 +1,13 @@
 package fun.with.promise;
 
-import fun.with.Lists;
 import fun.with.interfaces.actions.ActionConsumer;
 
 import java.util.*;
-import java.util.concurrent.atomic.AtomicInteger;
 
 public class PromiseImpl<Result, Error> implements Promise<Result, Error> {
 
-    private Queue<ActionConsumer<Result>> remainingConsumers = new LinkedList<>();
-    private Queue<ActionConsumer<Error>> remainingErrorConsumers = new LinkedList<>();
+    private final Queue<ActionConsumer<Result>> remainingConsumers = new LinkedList<>();
+    private final Queue<ActionConsumer<Error>> remainingErrorConsumers = new LinkedList<>();
     private boolean hasResult = false;
     private boolean hasError = false;
     private Result result;
@@ -40,39 +38,6 @@ public class PromiseImpl<Result, Error> implements Promise<Result, Error> {
      */
     public static <R, E> PromiseImpl<R, E> withThrowingOnException() {
         return new PromiseImpl<>(true);
-    }
-
-    /**
-     * Fuses the promises into a new one that executes once everything had been executed with any result.
-     * Simply skips null promises.
-     *
-     * @param promises
-     * @return
-     */
-    public static Promise<List<Promise<Object, Object>>, Void> fuse(Promise<?, ?>... promises) {
-        PromiseImpl<List<Promise<Object, Object>>, Void> fusedPromise = new PromiseImpl<>(false);
-        if (promises == null || promises.length == 0)
-            return fusedPromise.resolveOk(new ArrayList<>());
-        Lists<Promise<Object, Object>> lsPromises = Lists.of(promises)
-                .filter(Objects::nonNull)
-                .map(p -> (Promise<Object, Object>) p);
-        if (lsPromises.isEmpty())
-            return fusedPromise.resolveOk(new ArrayList<>());
-        AtomicInteger remaining = new AtomicInteger(lsPromises.size());
-        for (Promise<?, ?> promise : lsPromises.get()) {
-            promise.onDone(o -> {
-                int current = remaining.decrementAndGet();
-                if (current == 0) {
-                    fusedPromise.resolveOk(lsPromises.copy().get());
-                }
-            }).onError(o -> {
-                int current = remaining.decrementAndGet();
-                if (current == 0) {
-                    fusedPromise.resolveOk(lsPromises.copy().get());
-                }
-            });
-        }
-        return fusedPromise;
     }
 
     public Promise<Result, Error> toInterface() {
@@ -110,20 +75,6 @@ public class PromiseImpl<Result, Error> implements Promise<Result, Error> {
     public boolean isPending() {
         synchronized (this) {
             return !this.hasError && !this.hasResult;
-        }
-    }
-
-    @Override
-    public boolean isOk() {
-        synchronized (this) {
-            return this.hasResult;
-        }
-    }
-
-    @Override
-    public boolean isFailed() {
-        synchronized (this) {
-            return this.hasError;
         }
     }
 

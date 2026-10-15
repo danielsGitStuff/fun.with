@@ -59,27 +59,33 @@ public interface Promise<DoneType, ErrorType> {
         ReentrantLock lock = new ReentrantLock();
         for (Promise<?, ?> promise : lsPromises.get()) {
             promise.onDone(o -> {
+                boolean resolve = false;
                 try {
                     lock.lock();
                     int current = remaining.decrementAndGet();
                     if (current == 0 && !executed.get()) {
                         executed.set(true);
-                        fusedPromise.resolveOk(lsPromises.copy().get());
+                        resolve = true;
                     }
                 } finally {
                     lock.unlock();
                 }
+                if (resolve)
+                    fusedPromise.resolveOk(lsPromises.copy().get());
             }).onError(o -> {
+                boolean resolve = false;
                 try {
                     lock.lock();
                     remaining.decrementAndGet();
                     if (!executed.get()) {
                         executed.set(true);
-                        fusedPromise.resolveError(null);
+                        resolve = true;
                     }
-                }finally {
+                } finally {
                     lock.unlock();
                 }
+                if (resolve)
+                    fusedPromise.resolveError(null);
             });
         }
         return fusedPromise;

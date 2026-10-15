@@ -60,8 +60,8 @@ public interface Promise<DoneType, ErrorType> {
         for (Promise<?, ?> promise : lsPromises.get()) {
             promise.onDone(o -> {
                 boolean resolve = false;
+                lock.lock();
                 try {
-                    lock.lock();
                     int current = remaining.decrementAndGet();
                     if (current == 0 && !executed.get()) {
                         executed.set(true);
@@ -74,8 +74,8 @@ public interface Promise<DoneType, ErrorType> {
                     fusedPromise.resolveOk(lsPromises.copy().get());
             }).onError(o -> {
                 boolean resolve = false;
+                lock.lock();
                 try {
-                    lock.lock();
                     remaining.decrementAndGet();
                     if (!executed.get()) {
                         executed.set(true);
